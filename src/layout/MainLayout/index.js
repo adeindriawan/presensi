@@ -11,7 +11,6 @@ import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Header from './Header';
 import Sidebar from './Sidebar';
 import Customization from '../Customization';
-import Loading from 'ui-component/Loading';
 import navigation from 'menu-items';
 import { drawerWidth } from 'store/constant';
 import { SET_MENU } from 'store/actions';
@@ -71,7 +70,6 @@ const MainLayout = () => {
 
     // Handle left drawer
     const leftDrawerOpened = useSelector((state) => state.customization.opened);
-    const isAppLoading = useSelector((state) => state.customization.app.isLoading);
     const dispatch = useDispatch();
     const handleLeftDrawerToggle = () => {
         dispatch({ type: SET_MENU, opened: !leftDrawerOpened });
@@ -82,38 +80,38 @@ const MainLayout = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [matchDownMd]);
 
-    return isAppLoading ? (
-        <Loading />
-    ) : (
-        <Box sx={{ display: 'flex' }}>
-            <CssBaseline />
-            {/* header */}
-            <AppBar
-                enableColorOnDark
-                position="fixed"
-                color="inherit"
-                elevation={0}
-                sx={{
-                    bgcolor: theme.palette.background.default,
-                    transition: leftDrawerOpened ? theme.transitions.create('width') : 'none'
-                }}
-            >
-                <Toolbar>
-                    <Header handleLeftDrawerToggle={handleLeftDrawerToggle} />
-                </Toolbar>
-            </AppBar>
+    return (
+        <>
+            <Box sx={{ display: 'flex' }}>
+                <CssBaseline />
+                {/* header */}
+                <AppBar
+                    enableColorOnDark
+                    position="fixed"
+                    color="inherit"
+                    elevation={0}
+                    sx={{
+                        bgcolor: theme.palette.background.default,
+                        transition: leftDrawerOpened ? theme.transitions.create('width') : 'none'
+                    }}
+                >
+                    <Toolbar>
+                        <Header handleLeftDrawerToggle={handleLeftDrawerToggle} />
+                    </Toolbar>
+                </AppBar>
 
-            {/* drawer */}
-            <Sidebar drawerOpen={leftDrawerOpened} drawerToggle={handleLeftDrawerToggle} />
+                {/* drawer */}
+                <Sidebar drawerOpen={leftDrawerOpened} drawerToggle={handleLeftDrawerToggle} />
 
-            {/* main content */}
-            <Main theme={theme} open={leftDrawerOpened}>
-                {/* breadcrumb */}
-                <Breadcrumbs separator={IconChevronRight} navigation={navigation} icon title rightAlign />
-                <Outlet />
-            </Main>
-            <Customization />
-        </Box>
+                {/* main content */}
+                <Main theme={theme} open={leftDrawerOpened}>
+                    {/* breadcrumb */}
+                    <Breadcrumbs separator={IconChevronRight} navigation={navigation} icon title rightAlign />
+                    <Outlet />
+                </Main>
+                <Customization />
+            </Box>
+        </>
     );
 };
 

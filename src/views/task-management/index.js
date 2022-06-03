@@ -1,3 +1,5 @@
+import { Navigate } from 'react-router-dom';
+
 // material-ui
 import { Typography } from '@mui/material';
 
@@ -8,14 +10,20 @@ import TaskList from './TaskList';
 
 // ==============================|| SAMPLE PAGE ||============================== //
 
-const TaskManagement = () => (
-    <>
-        <MainCard title="Form Tugas Anda">
-            <Typography variant="body2">Tulis tugas Anda secara ringkas</Typography>
-            <TaskForm />
-        </MainCard>
-        <TaskList />
-    </>
-);
+const TaskManagement = () => {
+    const isLoggedIn = localStorage.getItem('accessToken');
+
+    return isLoggedIn ? (
+        <>
+            <MainCard title="Form Tugas Anda">
+                <Typography variant="body2">Tulis tugas Anda secara ringkas</Typography>
+                <TaskForm />
+            </MainCard>
+            <TaskList />
+        </>
+    ) : (
+        <Navigate to="/login" />
+    );
+};
 
 export default TaskManagement;

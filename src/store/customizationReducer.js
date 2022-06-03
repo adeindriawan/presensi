@@ -48,6 +48,26 @@ const customizationReducer = (state = initialState, action) => {
                     isLoading: action.isLoading
                 }
             };
+        case actionTypes.USER_LOGIN:
+            return {
+                ...state,
+                user: action.userData
+            };
+        case actionTypes.USER_LOGOUT:
+            return {
+                ...state,
+                user: {}
+            };
+        case actionTypes.CHART_LOADING:
+            return {
+                ...state,
+                isLoading: true
+            };
+        case actionTypes.CHART_LOADED:
+            return {
+                ...state,
+                isLoading: false
+            };
         default:
             return state;
     }

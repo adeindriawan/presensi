@@ -22,7 +22,14 @@ import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 
 // project imports
 import { gridSpacing } from 'store/constant';
-import axios from 'utils/axios';
+import axios from 'axios';
+// import axios from 'utils/axios';
+import { useDispatch } from 'react-redux';
+import { useEffect, useState, useContext } from 'react';
+import config from 'config';
+import { IS_LOADING } from 'store/actions';
+import { store } from 'context';
+// import { isLoading } from 'store/actions';
 
 const tasks = [
     {
@@ -80,6 +87,9 @@ const FormikRadioGroup = ({ field, form: { touched, errors }, name, ...props }) 
 
 const TaskList = () => {
     const options = ['office', 'home', 'other'];
+    const [loading, setLoading] = useState(false);
+    const globalState = useContext(store);
+    const { dispatch } = globalState;
 
     const validateForm = (values) => {
         const errors = {};
@@ -89,9 +99,69 @@ const TaskList = () => {
         return errors;
     };
     const onSubmit = async (values) => {
-        const axiosResponse = await axios({ method: 'post', url: 'http://itstekno.beta/api/post-test' });
+        const axiosResponse = await axios({ method: 'post', url: `${config.backendUrl}/post-test` });
         console.log(axiosResponse);
+        // dispatch({ type: IS_LOADING, isLoading: false });
         console.log(values);
+    };
+
+    const getFetchedTasks = async () => {
+        axios.interceptors.request.use(
+            (config) => {
+                // Do something before request is sent
+                dispatch({
+                    type: 'isLoading'
+                });
+                // dispatch(isLoading(true));
+                return config;
+            },
+            (error) =>
+                // Do something with request error
+                Promise.reject(error)
+        );
+
+        axios.interceptors.response.use(
+            (response) => {
+                // Any status code that lie within the range of 2xx cause this function to trigger
+                // Do something with response data
+                dispatch({
+                    type: 'isLoaded'
+                });
+                // dispatch(isLoading(false));
+                return response;
+            },
+            (error) =>
+                // Any status codes that falls outside the range of 2xx cause this function to trigger
+                // Do something with response error
+                Promise.reject(error)
+        );
+        const fetchTasks = await axios.get('http://itstekno.beta/api/get-test');
+        console.log(fetchTasks.data);
+    };
+
+    // useEffect(() => {
+    //     if (loading) {
+    //         dispatch({ type: IS_LOADING, isLoading: true });
+    //     } else {
+    //         dispatch({ type: IS_LOADING, isLoading: false });
+    //     }
+    // }, [dispatch, loading]);
+
+    useEffect(() => {
+        let mustLoad = true;
+
+        if (mustLoad) {
+            getFetchedTasks();
+            // dispatch({ type: IS_LOADING, isLoading: false });
+        }
+
+        return () => {
+            mustLoad = false;
+        };
+    }, []);
+
+    const tesDispatch = () => {
+        getFetchedTasks();
     };
 
     return (
@@ -148,6 +218,7 @@ const TaskList = () => {
                     <Pagination count={10} variant="outlined" shape="rounded" />
                 </CardActions>
             </MainCard>
+            <Button onClick={tesDispatch}>coba</Button>
             <MainCard>
                 <Typography>Anda tercatat belum memulai kerja hari ini</Typography>
                 <Formik initialValues={{ venue: '' }} validate={validateForm} onSubmit={onSubmit}>
