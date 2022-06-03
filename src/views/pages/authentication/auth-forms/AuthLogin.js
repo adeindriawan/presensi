@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router';
 
 // material-ui
@@ -29,8 +28,6 @@ import { Formik } from 'formik';
 import useScriptRef from 'hooks/useScriptRef';
 import AnimateButton from 'ui-component/extended/AnimateButton';
 import axios from 'axios';
-import { IS_LOADING, USER_LOGIN } from 'store/actions';
-import { login } from 'session/actions';
 
 // assets
 import Visibility from '@mui/icons-material/Visibility';
@@ -40,7 +37,6 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
 const FirebaseLogin = ({ ...others }) => {
     const theme = useTheme();
-    const dispatch = useDispatch();
     const navigate = useNavigate();
     const scriptedRef = useScriptRef();
     const [checked, setChecked] = useState(true);

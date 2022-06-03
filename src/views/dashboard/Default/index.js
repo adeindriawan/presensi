@@ -12,7 +12,7 @@ const Dashboard = () => {
     const [isLoading, setLoading] = useState(true);
     useEffect(() => {
         setLoading(false);
-    }, []);
+    }, [isLoading]);
 
     return (
         <Grid container spacing={gridSpacing}>

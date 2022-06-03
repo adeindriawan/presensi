@@ -23,13 +23,9 @@ import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 // project imports
 import { gridSpacing } from 'store/constant';
 import axios from 'axios';
-// import axios from 'utils/axios';
-import { useDispatch } from 'react-redux';
-import { useEffect, useState, useContext } from 'react';
+import { useContext } from 'react';
 import config from 'config';
-import { IS_LOADING } from 'store/actions';
 import { store } from 'context';
-// import { isLoading } from 'store/actions';
 
 const tasks = [
     {
@@ -87,7 +83,6 @@ const FormikRadioGroup = ({ field, form: { touched, errors }, name, ...props }) 
 
 const TaskList = () => {
     const options = ['office', 'home', 'other'];
-    const [loading, setLoading] = useState(false);
     const globalState = useContext(store);
     const { dispatch } = globalState;
 
@@ -147,18 +142,18 @@ const TaskList = () => {
     //     }
     // }, [dispatch, loading]);
 
-    useEffect(() => {
-        let mustLoad = true;
+    // useEffect(() => {
+    //     let mustLoad = true;
 
-        if (mustLoad) {
-            getFetchedTasks();
-            // dispatch({ type: IS_LOADING, isLoading: false });
-        }
+    //     if (mustLoad) {
+    //         getFetchedTasks();
+    //         // dispatch({ type: IS_LOADING, isLoading: false });
+    //     }
 
-        return () => {
-            mustLoad = false;
-        };
-    }, []);
+    //     return () => {
+    //         mustLoad = false;
+    //     };
+    // }, []);
 
     const tesDispatch = () => {
         getFetchedTasks();
