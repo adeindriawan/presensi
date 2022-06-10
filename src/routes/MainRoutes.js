@@ -16,8 +16,6 @@ const UtilsTablerIcons = Loadable(lazy(() => import('views/utilities/TablerIcons
 
 // sample page routing
 const SamplePage = Loadable(lazy(() => import('views/sample-page')));
-
-// task management routing
 const TaskManagement = Loadable(lazy(() => import('views/task-management')));
 
 // ==============================|| MAIN ROUTING ||============================== //

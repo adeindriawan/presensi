@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
+import { useDispatch } from 'react-redux';
+import axios from 'axios';
+import { SESSION_LOGIN } from 'store/actions';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
@@ -10,7 +13,6 @@ import {
     FormControl,
     FormControlLabel,
     FormHelperText,
-    Grid,
     IconButton,
     InputAdornment,
     InputLabel,
@@ -22,12 +24,10 @@ import {
 // third party
 import * as Yup from 'yup';
 import { Formik } from 'formik';
-// import axios from 'axios';
 
 // project imports
 import useScriptRef from 'hooks/useScriptRef';
 import AnimateButton from 'ui-component/extended/AnimateButton';
-import axios from 'axios';
 
 // assets
 import Visibility from '@mui/icons-material/Visibility';
@@ -37,10 +37,10 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
 const FirebaseLogin = ({ ...others }) => {
     const theme = useTheme();
-    const navigate = useNavigate();
     const scriptedRef = useScriptRef();
     const [checked, setChecked] = useState(true);
-
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
     const handleClickShowPassword = () => {
         setShowPassword(!showPassword);
@@ -52,14 +52,6 @@ const FirebaseLogin = ({ ...others }) => {
 
     return (
         <>
-            <Grid container direction="column" justifyContent="center" spacing={2}>
-                <Grid item xs={12} container alignItems="center" justifyContent="center">
-                    <Box sx={{ mb: 2 }}>
-                        <Typography variant="subtitle1">Masuk dengan alamat email</Typography>
-                    </Box>
-                </Grid>
-            </Grid>
-
             <Formik
                 initialValues={{
                     email: 'info@codedthemes.com',
@@ -75,6 +67,7 @@ const FirebaseLogin = ({ ...others }) => {
                         if (scriptedRef.current) {
                             setStatus({ success: true });
                             setSubmitting(false);
+                            console.log(`submitted`);
                         }
                         await axios.post('http://itstekno.beta/api/login', values).then((response) => {
                             // dispatch({ type: IS_LOADING, isLoading: true });
@@ -91,7 +84,10 @@ const FirebaseLogin = ({ ...others }) => {
                             localStorage.setItem('userName', userName);
                             localStorage.setItem('userEmail', userEmail);
                             localStorage.setItem('userType', userType);
-                            // dispatch(login(userData));
+                            dispatch({
+                                type: SESSION_LOGIN,
+                                payload: userData
+                            });
                             // dispatch({ type: USER_LOGIN, userData });
                             navigate('/task-management');
                         });
@@ -171,10 +167,10 @@ const FirebaseLogin = ({ ...others }) => {
                                         color="primary"
                                     />
                                 }
-                                label="Ingat saya"
+                                label="Remember me"
                             />
                             <Typography variant="subtitle1" color="secondary" sx={{ textDecoration: 'none', cursor: 'pointer' }}>
-                                Lupa kata sandi?
+                                Forgot Password?
                             </Typography>
                         </Stack>
                         {errors.submit && (
@@ -194,7 +190,7 @@ const FirebaseLogin = ({ ...others }) => {
                                     variant="contained"
                                     color="secondary"
                                 >
-                                    Masuk
+                                    Sign in
                                 </Button>
                             </AnimateButton>
                         </Box>

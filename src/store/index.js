@@ -1,11 +1,15 @@
-import { createStore, applyMiddleware } from 'redux';
-import reducer from './reducer';
+import { createStore, applyMiddleware, compose } from 'redux';
 import thunkMiddleware from 'redux-thunk';
-// import apiMiddleware from './middleware/api';
+import { composeWithDevTools } from 'redux-devtools-extension';
+import reducer from './reducer';
 
 // ==============================|| REDUX - MAIN STORE ||============================== //
-const middlewares = [thunkMiddleware];
-const store = createStore(reducer, applyMiddleware(...middlewares));
+
+const middlewares = [thunkMiddleware]; // loggerMiddleware
+const middlewareEnhancer = composeWithDevTools(applyMiddleware(...middlewares));
+const enhancers = [middlewareEnhancer];
+const composedEnhancers = compose(...enhancers);
+const store = createStore(reducer, composedEnhancers);
 const persister = 'Free';
 
 export { store, persister };

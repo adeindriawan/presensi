@@ -81,37 +81,35 @@ const MainLayout = () => {
     }, [matchDownMd]);
 
     return (
-        <>
-            <Box sx={{ display: 'flex' }}>
-                <CssBaseline />
-                {/* header */}
-                <AppBar
-                    enableColorOnDark
-                    position="fixed"
-                    color="inherit"
-                    elevation={0}
-                    sx={{
-                        bgcolor: theme.palette.background.default,
-                        transition: leftDrawerOpened ? theme.transitions.create('width') : 'none'
-                    }}
-                >
-                    <Toolbar>
-                        <Header handleLeftDrawerToggle={handleLeftDrawerToggle} />
-                    </Toolbar>
-                </AppBar>
+        <Box sx={{ display: 'flex' }}>
+            <CssBaseline />
+            {/* header */}
+            <AppBar
+                enableColorOnDark
+                position="fixed"
+                color="inherit"
+                elevation={0}
+                sx={{
+                    bgcolor: theme.palette.background.default,
+                    transition: leftDrawerOpened ? theme.transitions.create('width') : 'none'
+                }}
+            >
+                <Toolbar>
+                    <Header handleLeftDrawerToggle={handleLeftDrawerToggle} />
+                </Toolbar>
+            </AppBar>
 
-                {/* drawer */}
-                <Sidebar drawerOpen={leftDrawerOpened} drawerToggle={handleLeftDrawerToggle} />
+            {/* drawer */}
+            <Sidebar drawerOpen={leftDrawerOpened} drawerToggle={handleLeftDrawerToggle} />
 
-                {/* main content */}
-                <Main theme={theme} open={leftDrawerOpened}>
-                    {/* breadcrumb */}
-                    <Breadcrumbs separator={IconChevronRight} navigation={navigation} icon title rightAlign />
-                    <Outlet />
-                </Main>
-                <Customization />
-            </Box>
-        </>
+            {/* main content */}
+            <Main theme={theme} open={leftDrawerOpened}>
+                {/* breadcrumb */}
+                <Breadcrumbs separator={IconChevronRight} navigation={navigation} icon title rightAlign />
+                <Outlet />
+            </Main>
+            <Customization />
+        </Box>
     );
 };
 

@@ -8,11 +8,7 @@ export const initialState = {
     isOpen: [], // for active default menu
     fontFamily: config.fontFamily,
     borderRadius: config.borderRadius,
-    opened: true,
-    user: {},
-    app: {
-        isLoading: false
-    }
+    opened: true
 };
 
 // ==============================|| CUSTOMIZATION REDUCER ||============================== //
@@ -41,33 +37,20 @@ const customizationReducer = (state = initialState, action) => {
                 ...state,
                 borderRadius: action.borderRadius
             };
-        case actionTypes.IS_LOADING:
+        case actionTypes.SESSION_LOGIN: {
+            const user = action.payload;
             return {
                 ...state,
-                app: {
-                    isLoading: action.isLoading
+                loggedIn: true,
+                user: {
+                    ...initialState.user,
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                    type: user.type
                 }
             };
-        case actionTypes.USER_LOGIN:
-            return {
-                ...state,
-                user: action.userData
-            };
-        case actionTypes.USER_LOGOUT:
-            return {
-                ...state,
-                user: {}
-            };
-        case actionTypes.CHART_LOADING:
-            return {
-                ...state,
-                isLoading: true
-            };
-        case actionTypes.CHART_LOADED:
-            return {
-                ...state,
-                isLoading: false
-            };
+        }
         default:
             return state;
     }

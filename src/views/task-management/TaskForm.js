@@ -2,7 +2,7 @@ import { Formik } from 'formik';
 import * as Yup from 'yup';
 import { Box, Button, FormControl, FormHelperText, Grid, TextField } from '@mui/material';
 import AnimateButton from 'ui-component/extended/AnimateButton';
-import axios from 'utils/axios';
+import axios from 'axios';
 
 const TaskForm = () => (
     <>

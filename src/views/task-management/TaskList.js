@@ -23,9 +23,9 @@ import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 // project imports
 import { gridSpacing } from 'store/constant';
 import axios from 'axios';
-import { useContext } from 'react';
+// import { useContext } from 'react';
+import { useDispatch } from 'react-redux';
 import config from 'config';
-import { store } from 'context';
 
 const tasks = [
     {
@@ -83,8 +83,7 @@ const FormikRadioGroup = ({ field, form: { touched, errors }, name, ...props }) 
 
 const TaskList = () => {
     const options = ['office', 'home', 'other'];
-    const globalState = useContext(store);
-    const { dispatch } = globalState;
+    const { dispatch } = useDispatch();
 
     const validateForm = (values) => {
         const errors = {};
