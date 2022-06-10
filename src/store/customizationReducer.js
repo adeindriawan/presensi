@@ -51,6 +51,12 @@ const customizationReducer = (state = initialState, action) => {
                 }
             };
         }
+        case actionTypes.SESSION_LOGOUT:
+            return {
+                ...state,
+                loggedIn: false,
+                user: {}
+            };
         default:
             return state;
     }

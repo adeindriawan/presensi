@@ -9,6 +9,7 @@ import { Typography } from '@mui/material';
 import MainCard from 'ui-component/cards/MainCard';
 import TaskForm from './TaskForm';
 import TaskList from './TaskList';
+import { useEffect } from 'react';
 
 // ==============================|| SAMPLE PAGE ||============================== //
 
@@ -23,18 +24,20 @@ const TaskManagement = () => {
     const session = useSelector((state) => state.customization);
     const dispatch = useDispatch();
 
-    if (isLoggedIn && !session.loggedIn) {
-        const userData = {
-            id: localStorage.getItem('userId'),
-            name: localStorage.getItem('userName'),
-            email: localStorage.getItem('userEmail'),
-            type: localStorage.getItem('userType')
-        };
-        dispatch({
-            type: SESSION_LOGIN,
-            payload: userData
-        });
-    }
+    useEffect(() => {
+        if (isLoggedIn && !session.loggedIn) {
+            const userData = {
+                id: localStorage.getItem('userId'),
+                name: localStorage.getItem('userName'),
+                email: localStorage.getItem('userEmail'),
+                type: localStorage.getItem('userType')
+            };
+            dispatch({
+                type: SESSION_LOGIN,
+                payload: userData
+            });
+        }
+    }, []);
 
     return isLoggedIn ? (
         <>
