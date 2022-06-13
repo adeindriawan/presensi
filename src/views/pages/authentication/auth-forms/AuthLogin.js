@@ -67,7 +67,6 @@ const FirebaseLogin = ({ ...others }) => {
                         if (scriptedRef.current) {
                             setStatus({ success: true });
                             setSubmitting(false);
-                            console.log(`submitted`);
                         }
                         await axios.post('http://itstekno.beta/api/login', values).then((response) => {
                             // dispatch({ type: IS_LOADING, isLoading: true });

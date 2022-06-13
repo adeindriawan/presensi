@@ -22,43 +22,7 @@ import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 
 // project imports
 import { gridSpacing } from 'store/constant';
-import axios from 'axios';
-// import { useContext } from 'react';
-import { useDispatch } from 'react-redux';
-import config from 'config';
-
-const tasks = [
-    {
-        id: 1,
-        name: 'Tugas 1',
-        status: 1,
-        start: '20-02-2022'
-    },
-    {
-        id: 2,
-        name: 'Tugas 2',
-        status: 2,
-        start: '20-02-2022'
-    },
-    {
-        id: 3,
-        name: 'Tugas 3',
-        status: 3,
-        start: '21-02-2022'
-    },
-    {
-        id: 4,
-        name: 'Tugas 4',
-        status: 2,
-        start: '22-02-2022'
-    },
-    {
-        id: 5,
-        name: 'Tugas 5',
-        status: 1,
-        start: '22-02-2022'
-    }
-];
+import { getData } from 'utils/axios';
 
 // https://codesandbox.io/s/gracious-williamson-pd64p?file=/src/index.js:923-1051
 // eslint-disable-next-line react/prop-types
@@ -81,9 +45,12 @@ const FormikRadioGroup = ({ field, form: { touched, errors }, name, ...props }) 
     );
 };
 
+const fetchTaskData = getData('http://itstekno.beta/api/assignments/get?length=5');
+
 const TaskList = () => {
     const options = ['office', 'home', 'other'];
-    const { dispatch } = useDispatch();
+    const tasksData = fetchTaskData.read();
+    const tasks = tasksData.data;
 
     const validateForm = (values) => {
         const errors = {};
@@ -93,69 +60,7 @@ const TaskList = () => {
         return errors;
     };
     const onSubmit = async (values) => {
-        const axiosResponse = await axios({ method: 'post', url: `${config.backendUrl}/post-test` });
-        console.log(axiosResponse);
-        // dispatch({ type: IS_LOADING, isLoading: false });
         console.log(values);
-    };
-
-    const getFetchedTasks = async () => {
-        axios.interceptors.request.use(
-            (config) => {
-                // Do something before request is sent
-                dispatch({
-                    type: 'isLoading'
-                });
-                // dispatch(isLoading(true));
-                return config;
-            },
-            (error) =>
-                // Do something with request error
-                Promise.reject(error)
-        );
-
-        axios.interceptors.response.use(
-            (response) => {
-                // Any status code that lie within the range of 2xx cause this function to trigger
-                // Do something with response data
-                dispatch({
-                    type: 'isLoaded'
-                });
-                // dispatch(isLoading(false));
-                return response;
-            },
-            (error) =>
-                // Any status codes that falls outside the range of 2xx cause this function to trigger
-                // Do something with response error
-                Promise.reject(error)
-        );
-        const fetchTasks = await axios.get('http://itstekno.beta/api/get-test');
-        console.log(fetchTasks.data);
-    };
-
-    // useEffect(() => {
-    //     if (loading) {
-    //         dispatch({ type: IS_LOADING, isLoading: true });
-    //     } else {
-    //         dispatch({ type: IS_LOADING, isLoading: false });
-    //     }
-    // }, [dispatch, loading]);
-
-    // useEffect(() => {
-    //     let mustLoad = true;
-
-    //     if (mustLoad) {
-    //         getFetchedTasks();
-    //         // dispatch({ type: IS_LOADING, isLoading: false });
-    //     }
-
-    //     return () => {
-    //         mustLoad = false;
-    //     };
-    // }, []);
-
-    const tesDispatch = () => {
-        getFetchedTasks();
     };
 
     return (
@@ -165,12 +70,12 @@ const TaskList = () => {
                     <Grid container spacing={gridSpacing}>
                         <Grid item xs={12}>
                             {tasks.map((i) => (
-                                <Grid container direction="column" key={i.id}>
+                                <Grid container direction="column" key={i.sourceId}>
                                     <Grid item>
                                         <Grid container alignItems="center" justifyContent="space-between">
                                             <Grid item>
                                                 <Typography variant="subtitle1" color="inherit">
-                                                    {i.name}
+                                                    {i.title}
                                                 </Typography>
                                             </Grid>
                                             <Grid item>
@@ -212,7 +117,6 @@ const TaskList = () => {
                     <Pagination count={10} variant="outlined" shape="rounded" />
                 </CardActions>
             </MainCard>
-            <Button onClick={tesDispatch}>coba</Button>
             <MainCard>
                 <Typography>Anda tercatat belum memulai kerja hari ini</Typography>
                 <Formik initialValues={{ venue: '' }} validate={validateForm} onSubmit={onSubmit}>

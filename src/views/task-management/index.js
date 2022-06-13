@@ -9,7 +9,7 @@ import { Typography } from '@mui/material';
 import MainCard from 'ui-component/cards/MainCard';
 import TaskForm from './TaskForm';
 import TaskList from './TaskList';
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 
 // ==============================|| SAMPLE PAGE ||============================== //
 
@@ -37,7 +37,7 @@ const TaskManagement = () => {
                 payload: userData
             });
         }
-    }, []);
+    }, [dispatch, isLoggedIn, session.loggedIn]);
 
     return isLoggedIn ? (
         <>
@@ -45,7 +45,9 @@ const TaskManagement = () => {
                 <Typography variant="body2">Tulis tugas Anda secara ringkas</Typography>
                 <TaskForm />
             </MainCard>
-            <TaskList />
+            <Suspense fallback={<p>Memuat tugas...</p>}>
+                <TaskList />
+            </Suspense>
         </>
     ) : (
         <Navigate to="/login" />
