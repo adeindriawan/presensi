@@ -2,7 +2,7 @@ import loading from 'assets/images/loading.gif';
 import { styled } from '@mui/material/styles';
 
 const LoadingAnimation = styled('div')({
-    position: 'relative',
+    position: 'fixed',
     top: 0,
     left: 0,
     right: 0,

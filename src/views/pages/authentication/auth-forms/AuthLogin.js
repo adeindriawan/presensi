@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useDispatch } from 'react-redux';
 import axios from 'axios';
-import { SESSION_LOGIN } from 'store/actions';
+import { IS_LOADING, SESSION_LOGIN } from 'store/actions';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
@@ -63,13 +63,13 @@ const FirebaseLogin = ({ ...others }) => {
                     password: Yup.string().max(255).required('Password is required')
                 })}
                 onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
+                    dispatch({ type: IS_LOADING, payload: true });
                     try {
                         if (scriptedRef.current) {
                             setStatus({ success: true });
                             setSubmitting(false);
                         }
                         await axios.post('http://itstekno.beta/api/login', values).then((response) => {
-                            // dispatch({ type: IS_LOADING, isLoading: true });
                             const axiosData = response.data.data;
                             const accessToken = axiosData.access_token;
                             const userData = axiosData.user;
@@ -87,7 +87,7 @@ const FirebaseLogin = ({ ...others }) => {
                                 type: SESSION_LOGIN,
                                 payload: userData
                             });
-                            // dispatch({ type: USER_LOGIN, userData });
+                            dispatch({ type: IS_LOADING, payload: false });
                             navigate('/task-management');
                         });
                     } catch (err) {

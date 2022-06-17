@@ -8,7 +8,22 @@ export const initialState = {
     isOpen: [], // for active default menu
     fontFamily: config.fontFamily,
     borderRadius: config.borderRadius,
-    opened: true
+    opened: true,
+    app: {
+        isLoading: false
+    },
+    account: {
+        loggedIn: false,
+        user: {}
+    },
+    tasks: {
+        recentTasks: [],
+        todayTasks: []
+    },
+    work: {
+        started: false,
+        ended: false
+    }
 };
 
 // ==============================|| CUSTOMIZATION REDUCER ||============================== //
@@ -41,22 +56,77 @@ const customizationReducer = (state = initialState, action) => {
             const user = action.payload;
             return {
                 ...state,
-                loggedIn: true,
-                user: {
-                    ...initialState.user,
-                    id: user.id,
-                    name: user.name,
-                    email: user.email,
-                    type: user.type
+                account: {
+                    loggedIn: true,
+                    user: {
+                        ...state.account.user,
+                        id: user.id,
+                        name: user.name,
+                        email: user.email,
+                        type: user.type
+                    }
                 }
             };
         }
         case actionTypes.SESSION_LOGOUT:
             return {
                 ...state,
-                loggedIn: false,
-                user: {}
+                account: {
+                    loggedIn: false,
+                    user: {}
+                },
+                tasks: {
+                    recentTasks: [],
+                    todayTasks: []
+                }
             };
+        case actionTypes.RECENT_TASKS: {
+            const recentTasks = action.payload;
+            return {
+                ...state,
+                tasks: {
+                    ...state.tasks,
+                    recentTasks
+                }
+            };
+        }
+        case actionTypes.TODAY_TASKS: {
+            const todayTasks = action.payload;
+            return {
+                ...state,
+                tasks: {
+                    ...state.tasks,
+                    todayTasks
+                }
+            };
+        }
+        case actionTypes.WORK_STARTED:
+            return {
+                ...state,
+                work: {
+                    ...state.work,
+                    started: true
+                }
+            };
+        case actionTypes.WORK_ENDED:
+            return {
+                ...state,
+                work: {
+                    ...state.work,
+                    ended: true
+                }
+            };
+        case actionTypes.IS_LOADING: {
+            const isLoading = action.payload;
+            return {
+                ...state,
+                app: {
+                    ...state.app,
+                    isLoading
+                }
+            };
+        }
+
         default:
             return state;
     }

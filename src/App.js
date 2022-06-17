@@ -11,15 +11,22 @@ import themes from 'themes';
 
 // project imports
 import NavigationScroll from 'layout/NavigationScroll';
-
+import LoadingAnimation from 'ui-component/LoadingAnimations';
+import { useEffect, useState } from 'react';
 // ==============================|| APP ||============================== //
 
 const App = () => {
-    const customization = useSelector((state) => state.customization);
+    const session = useSelector((state) => state.customization);
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        setIsLoading(session.app.isLoading);
+    }, [session.app.isLoading]);
 
     return (
         <StyledEngineProvider injectFirst>
-            <ThemeProvider theme={themes(customization)}>
+            <ThemeProvider theme={themes(session)}>
+                {isLoading ? <LoadingAnimation /> : ''}
                 <CssBaseline />
                 <NavigationScroll>
                     <Routes />

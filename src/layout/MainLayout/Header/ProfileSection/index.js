@@ -150,10 +150,10 @@ const ProfileSection = () => {
                                             <Stack direction="row" spacing={0.5} alignItems="center">
                                                 <Typography variant="h4">Good Morning,</Typography>
                                                 <Typography component="span" variant="h4" sx={{ fontWeight: 400 }}>
-                                                    {customization.user.name}
+                                                    {customization.account.user.name}
                                                 </Typography>
                                             </Stack>
-                                            <Typography variant="subtitle2">{customization.user.type}</Typography>
+                                            <Typography variant="subtitle2">{customization.account.user.type}</Typography>
                                         </Stack>
                                     </Box>
                                     <PerfectScrollbar style={{ height: '100%', maxHeight: 'calc(100vh - 250px)', overflowX: 'hidden' }}>

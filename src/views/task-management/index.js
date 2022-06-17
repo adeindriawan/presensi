@@ -1,6 +1,6 @@
 import { Navigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { SESSION_LOGIN } from 'store/actions';
+import { SESSION_LOGIN, RECENT_TASKS, TODAY_TASKS } from 'store/actions';
 
 // material-ui
 import { Typography } from '@mui/material';
@@ -10,10 +10,14 @@ import MainCard from 'ui-component/cards/MainCard';
 import TaskForm from './TaskForm';
 import TaskList from './TaskList';
 import { useEffect, Suspense } from 'react';
+import { getData } from 'utils/axios';
 
 // ==============================|| SAMPLE PAGE ||============================== //
+const fetchTaskData = getData(`http://itstekno.beta/api/users/${localStorage.getItem('userId')}/assignments?length=5`);
 
 const TaskManagement = () => {
+    const tasksData = fetchTaskData.read();
+    const tasks = tasksData.data;
     const isLoggedIn =
         localStorage.getItem('accessToken') &&
         localStorage.getItem('userEmail') &&
@@ -25,7 +29,8 @@ const TaskManagement = () => {
     const dispatch = useDispatch();
 
     useEffect(() => {
-        if (isLoggedIn && !session.loggedIn) {
+        // jika masih ada data user, baik itu di local storage maupun di state app
+        if (isLoggedIn || session.account.loggedIn) {
             const userData = {
                 id: localStorage.getItem('userId'),
                 name: localStorage.getItem('userName'),
@@ -36,8 +41,21 @@ const TaskManagement = () => {
                 type: SESSION_LOGIN,
                 payload: userData
             });
+            dispatch({
+                type: RECENT_TASKS,
+                payload: tasks
+            });
+            const todayTasks = tasks.filter((v) => {
+                const taskDate = new Date(v.createdAt).setHours(0, 0, 0, 0);
+                const todayDate = new Date().setHours(0, 0, 0, 0);
+                return taskDate === todayDate;
+            });
+            dispatch({
+                type: TODAY_TASKS,
+                payload: todayTasks
+            });
         }
-    }, [dispatch, isLoggedIn, session.loggedIn]);
+    }, [dispatch, isLoggedIn, session.account.loggedIn, tasks]);
 
     return isLoggedIn ? (
         <>
