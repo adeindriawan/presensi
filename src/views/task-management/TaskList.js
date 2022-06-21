@@ -25,7 +25,7 @@ import { gridSpacing } from 'store/constant';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import axios from 'axios';
-import { WORK_STARTED, WORK_ENDED, IS_LOADING } from 'store/actions';
+import { WORK_STARTED, WORK_ENDED, IS_LOADING, TODAY_TASKS } from 'store/actions';
 
 // https://codesandbox.io/s/gracious-williamson-pd64p?file=/src/index.js:923-1051
 // eslint-disable-next-line react/prop-types
@@ -54,11 +54,15 @@ const TaskList = () => {
     const [tasks, setTasks] = useState([]);
     const [todayTasks, setTodayTasks] = useState([]);
     const [workStarted, setWorkStarted] = useState(false);
+    const [markedTasks, setMarkedTasks] = useState([]);
     const dispatch = useDispatch();
 
     useEffect(() => {
         if (session.tasks.todayTasks.length > 0) {
-            setTodayTasks(session.tasks.todayTasks);
+            const todayTasks = session.tasks.todayTasks;
+            setTodayTasks(todayTasks);
+            // tugas hari ini yang statusnya != 1 berarti sudah ditandai (belum, sedang, sudah)
+            setMarkedTasks(todayTasks.filter((v) => v.status !== 1));
         }
     }, [session.tasks.todayTasks]);
 
@@ -72,7 +76,7 @@ const TaskList = () => {
 
     const validateForm = (values) => {
         const errors = {};
-        if (values.venue === '') {
+        if (values.venue === '' && !workStarted) {
             errors.venue = 'Tempat bekerja wajib diisi!';
         }
         return errors;
@@ -86,7 +90,7 @@ const TaskList = () => {
                 console.log(`Anda dinyatakan telah mengakhiri kerja hari ini`);
                 dispatch({ type: IS_LOADING, payload: false });
             } else {
-                dispatch({ type: WORK_STARTED });
+                dispatch({ type: WORK_STARTED, payload: values.venue });
                 console.log(`Anda dinyatakan telah memulai bekerja hari ini`);
                 dispatch({ type: IS_LOADING, payload: false });
             }
@@ -95,22 +99,28 @@ const TaskList = () => {
     const markNotStarted = (id) => {
         dispatch({ type: IS_LOADING, payload: true });
         axios.patch(`http://itstekno.beta/api/assignments/${id}`, { id, status: 2 }).then(() => {
-            dispatch({ type: IS_LOADING, payload: false });
+            const updatedTodayTasks = todayTasks.map((p) => (p.sourceId === id ? { ...p, status: 2 } : p));
+            dispatch({ type: TODAY_TASKS, payload: updatedTodayTasks });
             console.log(`Tugas ID ${id} berhasil ditandai belum dimulai.`);
+            dispatch({ type: IS_LOADING, payload: false });
         });
     };
     const markBeingWorkedOn = (id) => {
         dispatch({ type: IS_LOADING, payload: true });
         axios.patch(`http://itstekno.beta/api/assignments/${id}`, { id, status: 3 }).then(() => {
-            dispatch({ type: IS_LOADING, payload: false });
+            const updatedTodayTasks = todayTasks.map((p) => (p.sourceId === id ? { ...p, status: 3 } : p));
+            dispatch({ type: TODAY_TASKS, payload: updatedTodayTasks });
             console.log(`Tugas ID ${id} berhasil ditandai sedang dikerjakan.`);
+            dispatch({ type: IS_LOADING, payload: false });
         });
     };
     const markFinished = (id) => {
         dispatch({ type: IS_LOADING, payload: true });
         axios.patch(`http://itstekno.beta/api/assignments/${id}`, { id, status: 4 }).then(() => {
-            dispatch({ type: IS_LOADING, payload: false });
+            const updatedTodayTasks = todayTasks.map((p) => (p.sourceId === id ? { ...p, status: 4 } : p));
+            dispatch({ type: TODAY_TASKS, payload: updatedTodayTasks });
             console.log(`Tugas ID ${id} berhasil ditandai sudah selesai.`);
+            dispatch({ type: IS_LOADING, payload: false });
         });
     };
 
@@ -186,19 +196,29 @@ const TaskList = () => {
                 </CardActions>
             </MainCard>
             <MainCard>
-                <Typography>Anda tercatat belum memulai kerja hari ini.</Typography>
-                <Typography>Isi tempat kerja Anda saat ini.</Typography>
+                {workStarted ? (
+                    <Typography>Anda bekerja dari {session.work.venue} </Typography>
+                ) : (
+                    <>
+                        <Typography>Anda tercatat belum memulai kerja hari ini.</Typography>
+                        <Typography>Isi tempat kerja Anda saat ini.</Typography>
+                    </>
+                )}
                 <Formik initialValues={{ venue: '' }} validate={validateForm} onSubmit={onSubmit}>
                     {() => (
                         // Pass in the radio buttons you want to render as a prop
                         <Form>
-                            <>
-                                <Field name="venue" options={options} component={FormikRadioGroup} />
-                            </>
+                            {!workStarted ? (
+                                <>
+                                    <Field name="venue" options={options} component={FormikRadioGroup} />
+                                </>
+                            ) : (
+                                ''
+                            )}
 
                             <div className="activation-buttons">
                                 <Button color="primary" variant="contained" type="submit" disabled={todayTasks.length === 0}>
-                                    MULAI BEKERJA
+                                    {workStarted ? 'AKHIRI BEKERJA' : 'MULAI BEKERJA'}
                                 </Button>
                             </div>
                         </Form>

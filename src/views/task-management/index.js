@@ -1,6 +1,6 @@
 import { Navigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { SESSION_LOGIN, RECENT_TASKS, TODAY_TASKS } from 'store/actions';
+import { SESSION_LOGIN, RECENT_TASKS, TODAY_TASKS, WORK_STARTED } from 'store/actions';
 
 // material-ui
 import { Typography } from '@mui/material';
@@ -11,6 +11,7 @@ import TaskForm from './TaskForm';
 import TaskList from './TaskList';
 import { useEffect, Suspense } from 'react';
 import { getData } from 'utils/axios';
+import axios from 'axios';
 
 // ==============================|| SAMPLE PAGE ||============================== //
 const fetchTaskData = getData(`http://itstekno.beta/api/users/${localStorage.getItem('userId')}/assignments?length=5`);
@@ -31,6 +32,13 @@ const TaskManagement = () => {
     useEffect(() => {
         // jika masih ada data user, baik itu di local storage maupun di state app
         if (isLoggedIn || session.account.loggedIn) {
+            axios.get('http://itstekno.beta/api/work/user/check').then((res) => {
+                const workToday = res.data.data;
+                if (Object.keys(workToday).length > 0) {
+                    const venue = workToday.venue;
+                    dispatch({ type: WORK_STARTED, payload: venue });
+                }
+            });
             const userData = {
                 id: localStorage.getItem('userId'),
                 name: localStorage.getItem('userName'),

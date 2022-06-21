@@ -22,7 +22,8 @@ export const initialState = {
     },
     work: {
         started: false,
-        ended: false
+        ended: false,
+        venue: ''
     }
 };
 
@@ -100,14 +101,17 @@ const customizationReducer = (state = initialState, action) => {
                 }
             };
         }
-        case actionTypes.WORK_STARTED:
+        case actionTypes.WORK_STARTED: {
+            const venue = action.payload;
             return {
                 ...state,
                 work: {
                     ...state.work,
-                    started: true
+                    started: true,
+                    venue
                 }
             };
+        }
         case actionTypes.WORK_ENDED:
             return {
                 ...state,
