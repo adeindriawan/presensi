@@ -24,7 +24,11 @@ const TaskForm = () => {
                 })}
                 onSubmit={async (values, actions) => {
                     dispatch({ type: IS_LOADING, payload: true });
-                    await axios({ method: 'post', url: `${config.baseUrl}/users/${userId}/assignment`, data: values }).then(async (res) => {
+                    await axios({
+                        method: 'post',
+                        url: `${config.baseUrl}/users/${userId}/assignment?env=${config.env}`,
+                        data: values
+                    }).then(async (res) => {
                         const getRecentTasks = await axios({
                             method: 'get',
                             url: `${config.baseUrl}/users/${userId}/assignments?page=1`

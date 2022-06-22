@@ -5,6 +5,7 @@ const config = {
     defaultPath: '/dashboard/default',
     fontFamily: `'Roboto', sans-serif`,
     borderRadius: 12,
+    env: process.env.NODE_ENV,
     baseUrl: process.env.NODE_ENV === 'development' ? 'http://itstekno.beta/api' : 'https://itsteknosains.co.id/api'
 };
 

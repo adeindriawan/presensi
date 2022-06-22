@@ -90,7 +90,7 @@ const TaskList = () => {
     };
     const onSubmit = async (values) => {
         dispatch({ type: IS_LOADING, payload: true });
-        const url = workStarted ? `${config.baseUrl}/work/end` : `${config.baseUrl}/work/start`;
+        const url = workStarted ? `${config.baseUrl}/work/end?env=${config.env}` : `${config.baseUrl}/work/start?env=${config.env}`;
         axios.post(url, values).then(() => {
             if (workStarted) {
                 dispatch({ type: WORK_ENDED });
@@ -119,7 +119,7 @@ const TaskList = () => {
                     text: `Status tugas ini belum dikerjakan`
                 });
             } else {
-                axios.patch(`${config.baseUrl}/assignments/${id}`, { id, status: 2 }).then(() => {
+                axios.patch(`${config.baseUrl}/assignments/${id}?env=${config.env}`, { id, status: 2 }).then(() => {
                     const updatedTodayTasks = todayTasks.map((p) => (p.sourceId === id ? { ...p, status: 2 } : p));
                     dispatch({ type: TODAY_TASKS, payload: updatedTodayTasks });
                     const updatedRecentTasks = tasks.map((p) => (p.sourceId === id ? { ...p, status: 2 } : p));
@@ -145,7 +145,7 @@ const TaskList = () => {
                     text: `Status tugas ini sedang dikerjakan`
                 });
             } else {
-                axios.patch(`${config.baseUrl}/assignments/${id}`, { id, status: 3 }).then(() => {
+                axios.patch(`${config.baseUrl}/assignments/${id}?env=${config.env}`, { id, status: 3 }).then(() => {
                     const updatedTodayTasks = todayTasks.map((p) => (p.sourceId === id ? { ...p, status: 3 } : p));
                     dispatch({ type: TODAY_TASKS, payload: updatedTodayTasks });
                     const updatedRecentTasks = tasks.map((p) => (p.sourceId === id ? { ...p, status: 3 } : p));
@@ -171,7 +171,7 @@ const TaskList = () => {
                     text: `Status tugas ini sudah selesai`
                 });
             } else {
-                axios.patch(`${config.baseUrl}/assignments/${id}`, { id, status: 4 }).then(() => {
+                axios.patch(`${config.baseUrl}/assignments/${id}?env=${config.env}`, { id, status: 4 }).then(() => {
                     const updatedTodayTasks = todayTasks.map((p) => (p.sourceId === id ? { ...p, status: 4 } : p));
                     dispatch({ type: TODAY_TASKS, payload: updatedTodayTasks });
                     const updatedRecentTasks = tasks.map((p) => (p.sourceId === id ? { ...p, status: 4 } : p));
