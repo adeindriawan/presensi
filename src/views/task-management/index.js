@@ -1,6 +1,6 @@
 import { Navigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { SESSION_LOGIN, RECENT_TASKS, TODAY_TASKS, WORK_STARTED } from 'store/actions';
+import { SESSION_LOGIN, RECENT_TASKS, TODAY_TASKS, WORK_STARTED, TOTAL_TASKS } from 'store/actions';
 
 // material-ui
 import { Typography } from '@mui/material';
@@ -10,15 +10,18 @@ import MainCard from 'ui-component/cards/MainCard';
 import TaskForm from './TaskForm';
 import TaskList from './TaskList';
 import { useEffect, Suspense } from 'react';
-import { getData } from 'utils/axios';
+// import { getData } from 'utils/axios';
 import axios from 'axios';
+import config from 'config';
 
 // ==============================|| SAMPLE PAGE ||============================== //
-const fetchTaskData = getData(`http://itstekno.beta/api/users/${localStorage.getItem('userId')}/assignments?length=5`);
+// const fetchTaskData = getData(`${config.baseUrl}/users/${localStorage.getItem('userId')}/assignments?page=1`);
 
 const TaskManagement = () => {
-    const tasksData = fetchTaskData.read();
-    const tasks = tasksData.data;
+    // const tasksData = fetchTaskData.read();
+    // const tasks = tasksData.data.data;
+    // const totalTasks = tasksData.data.last_page;
+    axios.defaults.headers.common.Authorization = `Bearer ${localStorage.getItem('accessToken')}`;
     const isLoggedIn =
         localStorage.getItem('accessToken') &&
         localStorage.getItem('userEmail') &&
@@ -32,12 +35,33 @@ const TaskManagement = () => {
     useEffect(() => {
         // jika masih ada data user, baik itu di local storage maupun di state app
         if (isLoggedIn || session.account.loggedIn) {
-            axios.get('http://itstekno.beta/api/work/user/check').then((res) => {
+            axios.get(`${config.baseUrl}/work/user/check`).then((res) => {
                 const workToday = res.data.data;
-                if (Object.keys(workToday).length > 0) {
+                if (workToday !== null && Object.keys(workToday).length > 0) {
                     const venue = workToday.venue;
                     dispatch({ type: WORK_STARTED, payload: venue });
                 }
+            });
+            axios.get(`${config.baseUrl}/users/${localStorage.getItem('userId')}/assignments`).then((res) => {
+                const tasks = res.data.data.data;
+                const totalTasks = res.data.data.last_page;
+                dispatch({
+                    type: RECENT_TASKS,
+                    payload: tasks
+                });
+                dispatch({
+                    type: TOTAL_TASKS,
+                    payload: totalTasks
+                });
+                const todayTasks = tasks.filter((v) => {
+                    const taskDate = new Date(v.createdAt).setHours(0, 0, 0, 0);
+                    const todayDate = new Date().setHours(0, 0, 0, 0);
+                    return taskDate === todayDate;
+                });
+                dispatch({
+                    type: TODAY_TASKS,
+                    payload: todayTasks
+                });
             });
             const userData = {
                 id: localStorage.getItem('userId'),
@@ -49,21 +73,8 @@ const TaskManagement = () => {
                 type: SESSION_LOGIN,
                 payload: userData
             });
-            dispatch({
-                type: RECENT_TASKS,
-                payload: tasks
-            });
-            const todayTasks = tasks.filter((v) => {
-                const taskDate = new Date(v.createdAt).setHours(0, 0, 0, 0);
-                const todayDate = new Date().setHours(0, 0, 0, 0);
-                return taskDate === todayDate;
-            });
-            dispatch({
-                type: TODAY_TASKS,
-                payload: todayTasks
-            });
         }
-    }, [dispatch, isLoggedIn, session.account.loggedIn, tasks]);
+    }, [dispatch, isLoggedIn, session.account.loggedIn]);
 
     return isLoggedIn ? (
         <>

@@ -1,8 +1,7 @@
 {
-    "name": "berry-material-react-free",
+    "name": "its-tekno-sains-task-management-system",
     "version": "3.0.1",
     "private": true,
-    "homepage": "https://berrydashboard.io/login",
     "dependencies": {
         "@emotion/cache": "^11.4.0",
         "@emotion/react": "^11.4.0",
@@ -38,6 +37,7 @@
         "redux": "^4.0.5",
         "redux-devtools-extension": "^2.13.9",
         "redux-thunk": "^2.4.1",
+        "sweetalert2": "^11.4.18",
         "yup": "^0.32.9"
     },
     "scripts": {

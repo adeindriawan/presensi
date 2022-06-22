@@ -4,7 +4,8 @@ import { Box, Button, FormControl, FormHelperText, Grid, TextField } from '@mui/
 import AnimateButton from 'ui-component/extended/AnimateButton';
 import axios from 'axios';
 import { useDispatch, useSelector } from 'react-redux';
-import { RECENT_TASKS, TODAY_TASKS, IS_LOADING } from 'store/actions';
+import { RECENT_TASKS, TODAY_TASKS, IS_LOADING, TOTAL_TASKS } from 'store/actions';
+import config from 'config';
 
 const TaskForm = () => {
     const dispatch = useDispatch();
@@ -23,27 +24,33 @@ const TaskForm = () => {
                 })}
                 onSubmit={async (values, actions) => {
                     dispatch({ type: IS_LOADING, payload: true });
-                    await axios({ method: 'post', url: `http://itstekno.beta/api/users/${userId}/assignment`, data: values }).then(
-                        async (res) => {
-                            const getRecentTasks = await axios({ method: 'get', url: 'http://itstekno.beta/api/assignments/get?length=5' });
-                            const recentTasks = getRecentTasks.data;
-                            dispatch({
-                                type: RECENT_TASKS,
-                                payload: recentTasks.data
-                            });
-                            const todayTasks = recentTasks.data.filter((v) => {
-                                const taskDate = new Date(v.createdAt).setHours(0, 0, 0, 0);
-                                const todayDate = new Date().setHours(0, 0, 0, 0);
-                                return taskDate === todayDate;
-                            });
-                            dispatch({
-                                type: TODAY_TASKS,
-                                payload: todayTasks
-                            });
-                            actions.setFieldValue('title', '');
-                            dispatch({ type: IS_LOADING, payload: false });
-                        }
-                    );
+                    await axios({ method: 'post', url: `${config.baseUrl}/users/${userId}/assignment`, data: values }).then(async (res) => {
+                        const getRecentTasks = await axios({
+                            method: 'get',
+                            url: `${config.baseUrl}/users/${userId}/assignments?page=1`
+                        });
+                        const recentTasks = getRecentTasks.data.data;
+                        const totalTasks = getRecentTasks.data.last_page;
+                        dispatch({
+                            type: RECENT_TASKS,
+                            payload: recentTasks.data
+                        });
+                        dispatch({
+                            type: TOTAL_TASKS,
+                            payload: totalTasks
+                        });
+                        const todayTasks = recentTasks.data.filter((v) => {
+                            const taskDate = new Date(v.createdAt).setHours(0, 0, 0, 0);
+                            const todayDate = new Date().setHours(0, 0, 0, 0);
+                            return taskDate === todayDate;
+                        });
+                        dispatch({
+                            type: TODAY_TASKS,
+                            payload: todayTasks
+                        });
+                        actions.setFieldValue('title', '');
+                        dispatch({ type: IS_LOADING, payload: false });
+                    });
                 }}
             >
                 {({ errors, handleBlur, handleChange, handleSubmit, isSubmitting, isValid, touched, values }) => (

@@ -12,3 +12,4 @@ export const TODAY_TASKS = 'TODAY_TASKS';
 export const WORK_STARTED = 'WORK_STARTED';
 export const WORK_ENDED = 'WORK_ENDED';
 export const IS_LOADING = 'IS_LOADING';
+export const TOTAL_TASKS = 'TOTAL_TASKS';

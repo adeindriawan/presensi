@@ -25,7 +25,9 @@ import { gridSpacing } from 'store/constant';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import axios from 'axios';
-import { WORK_STARTED, WORK_ENDED, IS_LOADING, TODAY_TASKS } from 'store/actions';
+import { WORK_STARTED, WORK_ENDED, IS_LOADING, TODAY_TASKS, RECENT_TASKS } from 'store/actions';
+import Swal from 'sweetalert2';
+import config from 'config';
 
 // https://codesandbox.io/s/gracious-williamson-pd64p?file=/src/index.js:923-1051
 // eslint-disable-next-line react/prop-types
@@ -53,6 +55,7 @@ const TaskList = () => {
     const session = useSelector((state) => state.customization);
     const [tasks, setTasks] = useState([]);
     const [todayTasks, setTodayTasks] = useState([]);
+    const [totalTasks, setTotalTasks] = useState(session.tasks.total);
     const [workStarted, setWorkStarted] = useState(false);
     const [markedTasks, setMarkedTasks] = useState([]);
     const dispatch = useDispatch();
@@ -74,6 +77,10 @@ const TaskList = () => {
         setWorkStarted(session.work.started);
     }, [session.work.started]);
 
+    useEffect(() => {
+        setTotalTasks(session.tasks.total);
+    }, [session.tasks.total]);
+
     const validateForm = (values) => {
         const errors = {};
         if (values.venue === '' && !workStarted) {
@@ -83,46 +90,128 @@ const TaskList = () => {
     };
     const onSubmit = async (values) => {
         dispatch({ type: IS_LOADING, payload: true });
-        const url = workStarted ? 'http://itstekno.beta/api/work/end' : 'http://itstekno.beta/api/work/start';
+        const url = workStarted ? `${config.baseUrl}/work/end` : `${config.baseUrl}/work/start`;
         axios.post(url, values).then(() => {
             if (workStarted) {
                 dispatch({ type: WORK_ENDED });
                 console.log(`Anda dinyatakan telah mengakhiri kerja hari ini`);
                 dispatch({ type: IS_LOADING, payload: false });
+                Swal.fire({
+                    text: `Anda dinyatakan telah mengakhiri pekerjaan hari ini`
+                });
             } else {
                 dispatch({ type: WORK_STARTED, payload: values.venue });
                 console.log(`Anda dinyatakan telah memulai bekerja hari ini`);
                 dispatch({ type: IS_LOADING, payload: false });
+                Swal.fire({
+                    text: `Anda dinyatakan telah memulai pekerjaan hari ini`
+                });
             }
         });
     };
     const markNotStarted = (id) => {
         dispatch({ type: IS_LOADING, payload: true });
-        axios.patch(`http://itstekno.beta/api/assignments/${id}`, { id, status: 2 }).then(() => {
-            const updatedTodayTasks = todayTasks.map((p) => (p.sourceId === id ? { ...p, status: 2 } : p));
-            dispatch({ type: TODAY_TASKS, payload: updatedTodayTasks });
-            console.log(`Tugas ID ${id} berhasil ditandai belum dimulai.`);
+        const relatedTask = tasks.find((e) => e.sourceId === id);
+        if (workStarted) {
+            if (relatedTask.status === 2) {
+                dispatch({ type: IS_LOADING, payload: false });
+                Swal.fire({
+                    text: `Status tugas ini belum dikerjakan`
+                });
+            } else {
+                axios.patch(`${config.baseUrl}/assignments/${id}`, { id, status: 2 }).then(() => {
+                    const updatedTodayTasks = todayTasks.map((p) => (p.sourceId === id ? { ...p, status: 2 } : p));
+                    dispatch({ type: TODAY_TASKS, payload: updatedTodayTasks });
+                    const updatedRecentTasks = tasks.map((p) => (p.sourceId === id ? { ...p, status: 2 } : p));
+                    dispatch({ type: RECENT_TASKS, payload: updatedRecentTasks });
+                    console.log(`Tugas ID ${id} berhasil ditandai belum dimulai.`);
+                    dispatch({ type: IS_LOADING, payload: false });
+                });
+            }
+        } else {
             dispatch({ type: IS_LOADING, payload: false });
-        });
+            Swal.fire({
+                text: `Anda harus memulai pekerjaan hari ini`
+            });
+        }
     };
     const markBeingWorkedOn = (id) => {
         dispatch({ type: IS_LOADING, payload: true });
-        axios.patch(`http://itstekno.beta/api/assignments/${id}`, { id, status: 3 }).then(() => {
-            const updatedTodayTasks = todayTasks.map((p) => (p.sourceId === id ? { ...p, status: 3 } : p));
-            dispatch({ type: TODAY_TASKS, payload: updatedTodayTasks });
-            console.log(`Tugas ID ${id} berhasil ditandai sedang dikerjakan.`);
+        const relatedTask = tasks.find((e) => e.sourceId === id);
+        if (workStarted) {
+            if (relatedTask.status === 3) {
+                dispatch({ type: IS_LOADING, payload: false });
+                Swal.fire({
+                    text: `Status tugas ini sedang dikerjakan`
+                });
+            } else {
+                axios.patch(`${config.baseUrl}/assignments/${id}`, { id, status: 3 }).then(() => {
+                    const updatedTodayTasks = todayTasks.map((p) => (p.sourceId === id ? { ...p, status: 3 } : p));
+                    dispatch({ type: TODAY_TASKS, payload: updatedTodayTasks });
+                    const updatedRecentTasks = tasks.map((p) => (p.sourceId === id ? { ...p, status: 3 } : p));
+                    dispatch({ type: RECENT_TASKS, payload: updatedRecentTasks });
+                    console.log(`Tugas ID ${id} berhasil ditandai sedang dikerjakan.`);
+                    dispatch({ type: IS_LOADING, payload: false });
+                });
+            }
+        } else {
             dispatch({ type: IS_LOADING, payload: false });
-        });
+            Swal.fire({
+                text: `Anda harus memulai pekerjaan hari ini`
+            });
+        }
     };
     const markFinished = (id) => {
         dispatch({ type: IS_LOADING, payload: true });
-        axios.patch(`http://itstekno.beta/api/assignments/${id}`, { id, status: 4 }).then(() => {
-            const updatedTodayTasks = todayTasks.map((p) => (p.sourceId === id ? { ...p, status: 4 } : p));
-            dispatch({ type: TODAY_TASKS, payload: updatedTodayTasks });
-            console.log(`Tugas ID ${id} berhasil ditandai sudah selesai.`);
+        const relatedTask = tasks.find((e) => e.sourceId === id);
+        if (workStarted) {
+            if (relatedTask.status === 4) {
+                dispatch({ type: IS_LOADING, payload: false });
+                Swal.fire({
+                    text: `Status tugas ini sudah selesai`
+                });
+            } else {
+                axios.patch(`${config.baseUrl}/assignments/${id}`, { id, status: 4 }).then(() => {
+                    const updatedTodayTasks = todayTasks.map((p) => (p.sourceId === id ? { ...p, status: 4 } : p));
+                    dispatch({ type: TODAY_TASKS, payload: updatedTodayTasks });
+                    const updatedRecentTasks = tasks.map((p) => (p.sourceId === id ? { ...p, status: 4 } : p));
+                    dispatch({ type: RECENT_TASKS, payload: updatedRecentTasks });
+                    console.log(`Tugas ID ${id} berhasil ditandai sudah selesai.`);
+                    dispatch({ type: IS_LOADING, payload: false });
+                });
+            }
+        } else {
             dispatch({ type: IS_LOADING, payload: false });
-        });
+            Swal.fire({
+                text: `Anda harus memulai pekerjaan hari ini`
+            });
+        }
     };
+
+    let workButton = (
+        <Button
+            color="primary"
+            variant="contained"
+            type="submit"
+            disabled={(todayTasks.length === 0 || workStarted) && (todayTasks.length !== markedTasks.length || todayTasks.length === 0)}
+        >
+            {workStarted ? 'AKHIRI BEKERJA' : 'MULAI BEKERJA'}
+        </Button>
+    );
+
+    if ((todayTasks.length === 0 || workStarted) && (todayTasks.length !== markedTasks.length || todayTasks.length === 0)) {
+        workButton = (
+            <Tooltip
+                title={
+                    workStarted
+                        ? 'Anda harus menandai semua tugas yang ditambahkan hari ini'
+                        : 'Anda harus mengisi minimal satu tugas untuk hari ini'
+                }
+            >
+                <span>{workButton}</span>
+            </Tooltip>
+        );
+    }
 
     return (
         <>
@@ -145,32 +234,45 @@ const TaskList = () => {
                                                         <Stack direction="row" spacing={1}>
                                                             <Tooltip title="Belum dikerjakan">
                                                                 <IconButton
-                                                                    aria-label="delete"
+                                                                    aria-label="not started"
                                                                     onClick={() => {
                                                                         markNotStarted(i.sourceId);
                                                                     }}
+                                                                    sx={
+                                                                        i.status === 2
+                                                                            ? { backgroundColor: 'blue' }
+                                                                            : { backgroundColor: 'default' }
+                                                                    }
                                                                 >
                                                                     <ReportGmailerrorredIcon />
                                                                 </IconButton>
                                                             </Tooltip>
                                                             <Tooltip title="Sedang dikerjakan">
                                                                 <IconButton
-                                                                    color="secondary"
-                                                                    aria-label="add an alarm"
+                                                                    aria-label="worked on"
                                                                     onClick={() => {
                                                                         markBeingWorkedOn(i.sourceId);
                                                                     }}
+                                                                    sx={
+                                                                        i.status === 3
+                                                                            ? { backgroundColor: 'blue' }
+                                                                            : { backgroundColor: 'default' }
+                                                                    }
                                                                 >
                                                                     <DriveFileRenameOutlineIcon />
                                                                 </IconButton>
                                                             </Tooltip>
                                                             <Tooltip title="Sudah selesai">
                                                                 <IconButton
-                                                                    color="primary"
-                                                                    aria-label="add to shopping cart"
+                                                                    aria-label="finished"
                                                                     onClick={() => {
                                                                         markFinished(i.sourceId);
                                                                     }}
+                                                                    sx={
+                                                                        i.status === 4
+                                                                            ? { backgroundColor: 'blue' }
+                                                                            : { backgroundColor: 'default' }
+                                                                    }
                                                                 >
                                                                     <AssignmentTurnedInIcon />
                                                                 </IconButton>
@@ -183,7 +285,7 @@ const TaskList = () => {
                                     </Grid>
                                     <Grid item>
                                         <Typography variant="subtitle2" sx={{ color: 'success.dark' }}>
-                                            {i.start}
+                                            {i.createdAt}
                                         </Typography>
                                     </Grid>
                                 </Grid>
@@ -192,12 +294,22 @@ const TaskList = () => {
                     </Grid>
                 </CardContent>
                 <CardActions sx={{ p: 1.25, pt: 0, justifyContent: 'center' }}>
-                    <Pagination count={10} variant="outlined" shape="rounded" />
+                    <Pagination
+                        count={totalTasks}
+                        variant="outlined"
+                        shape="rounded"
+                        onChange={(e, p) => {
+                            axios.get(`${config.baseUrl}/users/${localStorage.getItem('userId')}/assignments?page=${p}`).then((res) => {
+                                console.log(res);
+                                dispatch({ type: RECENT_TASKS, payload: res.data.data.data });
+                            });
+                        }}
+                    />
                 </CardActions>
             </MainCard>
             <MainCard>
                 {workStarted ? (
-                    <Typography>Anda bekerja dari {session.work.venue} </Typography>
+                    <Typography>Anda bekerja di {session.work.venue} </Typography>
                 ) : (
                     <>
                         <Typography>Anda tercatat belum memulai kerja hari ini.</Typography>
@@ -216,11 +328,7 @@ const TaskList = () => {
                                 ''
                             )}
 
-                            <div className="activation-buttons">
-                                <Button color="primary" variant="contained" type="submit" disabled={todayTasks.length === 0}>
-                                    {workStarted ? 'AKHIRI BEKERJA' : 'MULAI BEKERJA'}
-                                </Button>
-                            </div>
+                            <div className="activation-buttons">{workButton}</div>
                         </Form>
                     )}
                 </Formik>

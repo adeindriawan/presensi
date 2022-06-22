@@ -18,7 +18,8 @@ export const initialState = {
     },
     tasks: {
         recentTasks: [],
-        todayTasks: []
+        todayTasks: [],
+        total: 0
     },
     work: {
         started: false,
@@ -98,6 +99,16 @@ const customizationReducer = (state = initialState, action) => {
                 tasks: {
                     ...state.tasks,
                     todayTasks
+                }
+            };
+        }
+        case actionTypes.TOTAL_TASKS: {
+            const totalTasks = action.payload;
+            return {
+                ...state,
+                tasks: {
+                    ...state.tasks,
+                    total: totalTasks
                 }
             };
         }

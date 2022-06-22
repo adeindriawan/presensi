@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 import { useDispatch } from 'react-redux';
 import axios from 'axios';
 import { IS_LOADING, SESSION_LOGIN } from 'store/actions';
+import Swal from 'sweetalert2';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
@@ -28,6 +29,7 @@ import { Formik } from 'formik';
 // project imports
 import useScriptRef from 'hooks/useScriptRef';
 import AnimateButton from 'ui-component/extended/AnimateButton';
+import config from 'config';
 
 // assets
 import Visibility from '@mui/icons-material/Visibility';
@@ -54,7 +56,7 @@ const FirebaseLogin = ({ ...others }) => {
         <>
             <Formik
                 initialValues={{
-                    email: 'info@codedthemes.com',
+                    email: 'youremail@itsteknosains.co.id',
                     password: '123456',
                     submit: null
                 }}
@@ -69,7 +71,7 @@ const FirebaseLogin = ({ ...others }) => {
                             setStatus({ success: true });
                             setSubmitting(false);
                         }
-                        await axios.post('http://itstekno.beta/api/login', values).then((response) => {
+                        await axios.post(`${config.baseUrl}/login`, values).then((response) => {
                             const axiosData = response.data.data;
                             const accessToken = axiosData.access_token;
                             const userData = axiosData.user;
@@ -92,11 +94,16 @@ const FirebaseLogin = ({ ...others }) => {
                         });
                     } catch (err) {
                         console.error(err);
+                        const errorMessage = 'message' in err ? err.message : 'Error';
+                        Swal.fire({
+                            text: errorMessage
+                        });
                         if (scriptedRef.current) {
                             setStatus({ success: false });
                             setErrors({ submit: err.message });
                             setSubmitting(false);
                         }
+                        dispatch({ type: IS_LOADING, payload: false });
                     }
                 }}
             >
