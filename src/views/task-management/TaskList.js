@@ -19,6 +19,8 @@ import {
 import ReportGmailerrorredIcon from '@mui/icons-material/ReportGmailerrorred';
 import DriveFileRenameOutlineIcon from '@mui/icons-material/DriveFileRenameOutline';
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 
 // project imports
 import { gridSpacing } from 'store/constant';
@@ -28,6 +30,7 @@ import axios from 'axios';
 import { WORK_STARTED, WORK_ENDED, IS_LOADING, TODAY_TASKS, RECENT_TASKS } from 'store/actions';
 import Swal from 'sweetalert2';
 import config from 'config';
+import TaskEditModal from './TaskEditModal';
 
 // https://codesandbox.io/s/gracious-williamson-pd64p?file=/src/index.js:923-1051
 // eslint-disable-next-line react/prop-types
@@ -58,6 +61,11 @@ const TaskList = () => {
     const [totalTasks, setTotalTasks] = useState(session.tasks.total);
     const [workStarted, setWorkStarted] = useState(false);
     const [markedTasks, setMarkedTasks] = useState([]);
+    const [taskEditModal, setTaskEditModal] = useState({
+        open: false,
+        taskId: 0,
+        taskTitle: ''
+    });
     const dispatch = useDispatch();
 
     useEffect(() => {
@@ -187,6 +195,53 @@ const TaskList = () => {
             });
         }
     };
+    const editTask = (id) => {
+        if (workStarted) {
+            axios.get(`${config.baseUrl}/assignment/${id}/details`).then((res) => {
+                setTaskEditModal({
+                    open: true,
+                    taskId: id,
+                    taskTitle: res.data.data[0].title
+                });
+            });
+        } else {
+            Swal.fire({
+                text: `Anda harus memulai pekerjaan hari ini`
+            });
+        }
+    };
+    const deleteTask = (id) => {
+        if (workStarted) {
+            Swal.fire({
+                title: 'Konfirmasi hapus tugas',
+                text: 'Hapus tugas ini?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Hapus',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    axios.delete(`${config.baseUrl}/assignments/${id}`).then((response) => {
+                        axios.get(`${config.baseUrl}/users/${localStorage.getItem('userId')}/assignments`).then((res) => {
+                            const tasks = res.data.data.data;
+                            dispatch({
+                                type: RECENT_TASKS,
+                                payload: tasks
+                            });
+                            Swal.fire('Terhapus!', 'Tugas ini telah dihapus.', 'success');
+                        });
+                        console.log(response);
+                    });
+                }
+            });
+        } else {
+            Swal.fire({
+                text: `Anda harus memulai pekerjaan hari ini`
+            });
+        }
+    };
 
     let workButton = (
         <Button
@@ -277,6 +332,32 @@ const TaskList = () => {
                                                                     <AssignmentTurnedInIcon />
                                                                 </IconButton>
                                                             </Tooltip>
+                                                            <Tooltip title="Ubah tugas ini">
+                                                                <IconButton
+                                                                    aria-label="edit this task"
+                                                                    onClick={() => {
+                                                                        editTask(i.sourceId);
+                                                                    }}
+                                                                    sx={{
+                                                                        backgroundColor: 'secondary.light'
+                                                                    }}
+                                                                >
+                                                                    <EditIcon />
+                                                                </IconButton>
+                                                            </Tooltip>
+                                                            <Tooltip title="Hapus tugas ini">
+                                                                <IconButton
+                                                                    aria-label="delete this task"
+                                                                    onClick={() => {
+                                                                        deleteTask(i.sourceId);
+                                                                    }}
+                                                                    sx={{
+                                                                        backgroundColor: 'error.light'
+                                                                    }}
+                                                                >
+                                                                    <DeleteForeverIcon />
+                                                                </IconButton>
+                                                            </Tooltip>
                                                         </Stack>
                                                     </Grid>
                                                 </Grid>
@@ -333,6 +414,7 @@ const TaskList = () => {
                     )}
                 </Formik>
             </MainCard>
+            <TaskEditModal open={taskEditModal.open} taskId={taskEditModal.taskId} taskTitle={taskEditModal.taskTitle} />
         </>
     );
 };
