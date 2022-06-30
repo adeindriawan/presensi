@@ -16,7 +16,7 @@ const useStyle = makeStyles((theme) => ({
         left: '50%',
         transform: 'translate(-50%, -50%)',
         outline: 'none',
-        boxShadow: theme.shadows[20],
+        // boxShadow: theme.shadows[20],
         width: 700,
         maxHeight: '100%',
         overflowY: 'auto',

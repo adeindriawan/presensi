@@ -9,13 +9,12 @@ import { Typography } from '@mui/material';
 import MainCard from 'ui-component/cards/MainCard';
 import TaskForm from './TaskForm';
 import TaskList from './TaskList';
+import AbsenceForm from './AbsenceForm';
 import { useEffect, Suspense } from 'react';
-// import { getData } from 'utils/axios';
 import axios from 'axios';
 import config from 'config';
 
 // ==============================|| SAMPLE PAGE ||============================== //
-// const fetchTaskData = getData(`${config.baseUrl}/users/${localStorage.getItem('userId')}/assignments?page=1`);
 
 const TaskManagement = () => {
     // const tasksData = fetchTaskData.read();
@@ -85,6 +84,7 @@ const TaskManagement = () => {
             <Suspense fallback={<p>Memuat tugas...</p>}>
                 <TaskList />
             </Suspense>
+            <AbsenceForm />
         </>
     ) : (
         <Navigate to="/login" />
