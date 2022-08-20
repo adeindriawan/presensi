@@ -7,7 +7,7 @@ const config = {
     borderRadius: 12,
     env: process.env.NODE_ENV,
     baseUrl: process.env.NODE_ENV === 'development' ? 'http://itstekno.beta/api' : 'https://itsteknosains.co.id/api',
-    webUrl: process.env.NODE_ENV === 'development' ? 'http://itstekno.beta' : 'https://itsteknosains.co.id'
+    webUrl: process.env.NODE_ENV === 'development' ? 'http://itstekno.beta' : 'https://api.itsteknosains.co.id'
 };
 
 export default config;
