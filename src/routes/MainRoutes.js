@@ -17,6 +17,7 @@ const UtilsTablerIcons = Loadable(lazy(() => import('views/utilities/TablerIcons
 // sample page routing
 const SamplePage = Loadable(lazy(() => import('views/sample-page')));
 const TaskManagement = Loadable(lazy(() => import('views/task-management')));
+const PresenceRecords = Loadable(lazy(() => import('views/presence-records')));
 
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -59,6 +60,10 @@ const MainRoutes = {
         {
             path: '/task-management',
             element: <TaskManagement />
+        },
+        {
+            path: '/presence-records',
+            element: <PresenceRecords />
         }
     ]
 };

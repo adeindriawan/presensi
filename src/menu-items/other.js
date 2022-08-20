@@ -1,8 +1,8 @@
 // assets
-import { IconBrandChrome, IconHelp } from '@tabler/icons';
+import { IconBrandChrome, IconListCheck } from '@tabler/icons';
 
 // constant
-const icons = { IconBrandChrome, IconHelp };
+const icons = { IconBrandChrome, IconListCheck };
 
 // ==============================|| SAMPLE PAGE & DOCUMENTATION MENU ITEMS ||============================== //
 
@@ -15,7 +15,7 @@ const other = {
             title: 'Task Management',
             type: 'item',
             url: '/task-management',
-            icon: icons.IconBrandChrome,
+            icon: icons.IconListCheck,
             breadcrumbs: false
         }
     ]
