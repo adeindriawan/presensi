@@ -4,18 +4,15 @@ import * as Yup from 'yup';
 import {
     Box,
     Button,
-    Checkbox,
     FormControl,
-    FormControlLabel,
     FormHelperText,
     IconButton,
     InputAdornment,
     InputLabel,
     OutlinedInput,
-    Stack,
-    Typography
 } from '@mui/material';
 import { IS_LOADING, SESSION_LOGIN } from '@/store/actions';
+import { useEffect, useRef, useState } from 'react';
 
 import AnimateButton from '@/ui-component/extended/AnimateButton';
 import { Formik } from 'formik';
@@ -29,19 +26,18 @@ import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router';
 // project imports
 import useScriptRef from '@/hooks/useScriptRef';
-import { useState } from 'react';
 // material-ui
 import { useTheme } from '@mui/material/styles';
 
 // ============================|| FIREBASE - LOGIN ||============================ //
 
-const FirebaseLogin = ({ ...others }) => {
+const AuthLogin = ({ ...others }) => {
     const theme = useTheme();
     const scriptedRef = useScriptRef();
-    const [checked, setChecked] = useState(true);
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
+    const managerIds = useRef([])
     const handleClickShowPassword = () => {
         setShowPassword(!showPassword);
     };
@@ -49,6 +45,55 @@ const FirebaseLogin = ({ ...others }) => {
     const handleMouseDownPassword = (event) => {
         event.preventDefault();
     };
+
+    const handleSubmit = async (values, { setErrors, setStatus, setSubmitting }) => {
+        dispatch({ type: IS_LOADING, payload: true });
+        try {
+            if (scriptedRef.current) {
+                setStatus({ success: true });
+                setSubmitting(false);
+            }
+            await axios.post(`${config.baseUrl}/login`, values).then((response) => {
+                const responseData = response.data.data;
+                const accessToken = responseData.access_token;
+                const tokenExpireAt = responseData.expires_at;
+                const userData = responseData.user;
+                const newSessionData = {
+                    accessToken,
+                    tokenExpireAt,
+                    user: { ...userData, isManager: managerIds.current.includes(userData.id) }
+                }
+                dispatch({
+                    type: SESSION_LOGIN,
+                    payload: newSessionData
+                });
+                dispatch({ type: IS_LOADING, payload: false });
+                navigate('/task-management');
+            });
+        } catch (err) {
+            console.error(err);
+            const errorMessage = 'message' in err ? err.message : 'Error';
+            Swal.fire({
+                text: errorMessage
+            });
+            if (scriptedRef.current) {
+                setStatus({ success: false });
+                setErrors({ submit: err.message });
+                setSubmitting(false);
+            }
+            dispatch({ type: IS_LOADING, payload: false });
+        }
+    }
+
+    useEffect(() => {
+        const getConfig = async () => {
+            const { data: responseData } = await axios.get('/config.json')
+            if (Array.isArray(responseData.managerIds)) {
+                managerIds.current = responseData.managerIds
+            }
+        }
+        getConfig()
+    }, [])
 
     return (
         <>
@@ -62,48 +107,7 @@ const FirebaseLogin = ({ ...others }) => {
                     email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
                     password: Yup.string().max(255).required('Password is required')
                 })}
-                onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
-                    dispatch({ type: IS_LOADING, payload: true });
-                    try {
-                        if (scriptedRef.current) {
-                            setStatus({ success: true });
-                            setSubmitting(false);
-                        }
-                        await axios.post(`${config.baseUrl}/login`, values).then((response) => {
-                            const axiosData = response.data.data;
-                            const accessToken = axiosData.access_token;
-                            const userData = axiosData.user;
-                            const userId = userData.id;
-                            const userName = userData.name;
-                            const userEmail = userData.email;
-                            const userType = userData.type;
-                            axios.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
-                            localStorage.setItem('accessToken', accessToken);
-                            localStorage.setItem('userId', userId);
-                            localStorage.setItem('userName', userName);
-                            localStorage.setItem('userEmail', userEmail);
-                            localStorage.setItem('userType', userType);
-                            dispatch({
-                                type: SESSION_LOGIN,
-                                payload: userData
-                            });
-                            dispatch({ type: IS_LOADING, payload: false });
-                            navigate('/task-management');
-                        });
-                    } catch (err) {
-                        console.error(err);
-                        const errorMessage = 'message' in err ? err.message : 'Error';
-                        Swal.fire({
-                            text: errorMessage
-                        });
-                        if (scriptedRef.current) {
-                            setStatus({ success: false });
-                            setErrors({ submit: err.message });
-                            setSubmitting(false);
-                        }
-                        dispatch({ type: IS_LOADING, payload: false });
-                    }
-                }}
+                onSubmit={handleSubmit}
             >
                 {({ errors, handleBlur, handleChange, handleSubmit, isSubmitting, touched, values }) => (
                     <form noValidate onSubmit={handleSubmit} {...others}>
@@ -161,22 +165,6 @@ const FirebaseLogin = ({ ...others }) => {
                                 </FormHelperText>
                             )}
                         </FormControl>
-                        {/* <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
-                            <FormControlLabel
-                                control={
-                                    <Checkbox
-                                        checked={checked}
-                                        onChange={(event) => setChecked(event.target.checked)}
-                                        name="checked"
-                                        color="primary"
-                                    />
-                                }
-                                label="Remember me"
-                            />
-                            <Typography variant="subtitle1" color="secondary" sx={{ textDecoration: 'none', cursor: 'pointer' }}>
-                                Forgot Password?
-                            </Typography>
-                        </Stack> */}
                         {errors.submit && (
                             <Box sx={{ mt: 3 }}>
                                 <FormHelperText error>{errors.submit}</FormHelperText>
@@ -205,4 +193,4 @@ const FirebaseLogin = ({ ...others }) => {
     );
 };
 
-export default FirebaseLogin;
+export default AuthLogin;
