@@ -1,4 +1,4 @@
-import { store } from 'store';
+import { store } from '@/store';
 import dashboard from './dashboard';
 import other from './other';
 import managers from './managers';

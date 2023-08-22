@@ -5,9 +5,9 @@ const config = {
     defaultPath: '/dashboard/default',
     fontFamily: `'Roboto', sans-serif`,
     borderRadius: 12,
-    env: process.env.NODE_ENV,
-    baseUrl: process.env.NODE_ENV === 'development' ? 'http://itstekno.beta/api' : 'https://itsteknosains.co.id/api',
-    webUrl: process.env.NODE_ENV === 'development' ? 'http://itstekno.beta' : 'https://api.itsteknosains.co.id'
+    env: import.meta.env.DEV ? 'development' : 'production',
+    baseUrl: import.meta.env.DEV ? 'http://localhost:8000/api' : 'https://itsteknosains.co.id/api',
+    webUrl: import.meta.env.DEV ? 'http://localhost:8000' : 'https://api.itsteknosains.co.id'
 };
 
 export default config;
