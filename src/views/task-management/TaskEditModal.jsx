@@ -8,6 +8,7 @@ import axios from 'axios';
 import config from '@/config';
 import { useDispatch } from 'react-redux';
 import { RECENT_TASKS } from '@/store/actions';
+import { useApiServer } from '@/utils/useApiServer';
 
 const useStyle = makeStyles((theme) => ({
     cardModal: {
@@ -24,14 +25,21 @@ const useStyle = makeStyles((theme) => ({
     }
 }));
 
-const TaskEditModal = ({ ...props }) => {
+const TaskEditModal = ({ open, taskId, taskTitle, onSuccess }) => {
+    const apiServer = useApiServer()
     const classes = useStyle();
     const dispatch = useDispatch();
-    const [taskEditModalOpen, setTaskEditModalOpen] = useState(props.open);
+    const [taskEditModalOpen, setTaskEditModalOpen] = useState(open);
 
     useEffect(() => {
-        setTaskEditModalOpen(props.open);
-    }, [props.open]);
+        setTaskEditModalOpen(open);
+    }, [open]);
+
+    const handleSubmit = async (values) => {
+        await apiServer.patch(`${config.baseUrl}/assignments/${taskId}`, { id: taskId, assignment: values.assignment })
+        onSuccess()
+        setTaskEditModalOpen(false);
+    }
 
     return (
         <Modal open={taskEditModalOpen}>
@@ -39,26 +47,12 @@ const TaskEditModal = ({ ...props }) => {
                 <CardHeader title="Ubah tugas ini" />
                 <Formik
                     initialValues={{
-                        assignment: props.taskTitle
+                        assignment: taskTitle
                     }}
                     validationSchema={Yup.object().shape({
                         assignment: Yup.string().min(5, 'Tugas minimal memiliki 5 karakter').required('Tugas wajib diisi')
                     })}
-                    onSubmit={async (values) => {
-                        await axios
-                            .patch(`${config.baseUrl}/assignments/${props.taskId}`, { id: props.taskId, assignment: values.assignment })
-                            .then((response) => {
-                                console.log(response);
-                            });
-                        axios.get(`${config.baseUrl}/users/${localStorage.getItem('userId')}/assignments`).then((res) => {
-                            const tasks = res.data.data.data;
-                            dispatch({
-                                type: RECENT_TASKS,
-                                payload: tasks
-                            });
-                        });
-                        setTaskEditModalOpen(false);
-                    }}
+                    onSubmit={handleSubmit}
                 >
                     {({ handleChange, handleSubmit, values }) => (
                         <form noValidate onSubmit={handleSubmit}>

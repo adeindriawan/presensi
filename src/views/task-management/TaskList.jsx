@@ -25,12 +25,13 @@ import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 // project imports
 import { gridSpacing } from '@/store/constant';
 import { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import axios from 'axios';
-import { WORK_STARTED, WORK_ENDED, IS_LOADING, TODAY_TASKS, RECENT_TASKS } from '@/store/actions';
+import { useDispatch } from 'react-redux';
+import { WORK_STARTED, WORK_ENDED, IS_LOADING } from '@/store/actions';
 import Swal from 'sweetalert2';
 import config from '@/config';
 import TaskEditModal from './TaskEditModal';
+import { useSession } from '@/hooks/store-hooks';
+import { useApiServer } from '@/utils/useApiServer';
 
 // https://codesandbox.io/s/gracious-williamson-pd64p?file=/src/index.js:923-1051
 // eslint-disable-next-line react/prop-types
@@ -55,10 +56,13 @@ const FormikRadioGroup = ({ field, form: { touched, errors }, name, ...props }) 
 
 const TaskList = () => {
     const options = ['office', 'home', 'other'];
-    const session = useSelector((state) => state.customization);
+    const session = useSession()
+    const dispatch = useDispatch()
+    const apiServer = useApiServer()
+    const [currentPage, setCurrentPage] = useState(1);
     const [tasks, setTasks] = useState([]);
     const [todayTasks, setTodayTasks] = useState([]);
-    const [totalTasks, setTotalTasks] = useState(session.tasks.total);
+    const [totalTasks, setTotalTasks] = useState(0);
     const [workStarted, setWorkStarted] = useState(false);
     const [markedTasks, setMarkedTasks] = useState([]);
     const [taskEditModal, setTaskEditModal] = useState({
@@ -66,58 +70,60 @@ const TaskList = () => {
         taskId: 0,
         taskTitle: ''
     });
-    const dispatch = useDispatch();
+
+    const getData = async (page = 1) => {
+        const userId = session.user.id;
+        const res = await apiServer.get(`${config.baseUrl}/users/${userId}/assignments`, { params: { page } });
+        const tasks = res.data.data.data;
+        const totalTasks = res.data.last_page;
+        setTasks(tasks);
+        setTotalTasks(totalTasks);
+        const todayTasks = tasks.filter((v) => {
+            const taskDate = new Date(v.createdAt).setHours(0, 0, 0, 0);
+            const todayDate = new Date().setHours(0, 0, 0, 0);
+            return taskDate === todayDate;
+        });
+        setTodayTasks(todayTasks);
+        setMarkedTasks(todayTasks.filter((v) => v.status !== 1));
+    };
 
     useEffect(() => {
-        if (session.tasks.todayTasks.length > 0) {
-            const todayTasks = session.tasks.todayTasks;
-            setTodayTasks(todayTasks);
-            // tugas hari ini yang statusnya != 1 berarti sudah ditandai (belum, sedang, sudah)
-            setMarkedTasks(todayTasks.filter((v) => v.status !== 1));
-        }
-    }, [session.tasks.todayTasks]);
-
-    useEffect(() => {
-        setTasks(session.tasks.recentTasks);
-    }, [session.tasks.recentTasks]);
+        getData(currentPage);
+    }, [currentPage]);
 
     useEffect(() => {
         setWorkStarted(session.work.started);
     }, [session.work.started]);
 
-    useEffect(() => {
-        setTotalTasks(session.tasks.total);
-    }, [session.tasks.total]);
-
     const validateForm = (values) => {
-        const errors = {};
+        const errors = new Map();
         if (values.venue === '' && !workStarted) {
-            errors.venue = 'Tempat bekerja wajib diisi!';
+            errors.set('venue', 'Tempat bekerja wajib diisi!')
         }
-        return errors;
+        return Object.fromEntries(errors);
     };
-    const onSubmit = async (values) => {
+
+    const toggleWork = async (values) => {
         dispatch({ type: IS_LOADING, payload: true });
         const url = workStarted ? `${config.baseUrl}/work/end?env=${config.env}` : `${config.baseUrl}/work/start?env=${config.env}`;
-        axios.post(url, values).then(() => {
-            if (workStarted) {
-                dispatch({ type: WORK_ENDED });
-                console.log(`Anda dinyatakan telah mengakhiri kerja hari ini`);
-                dispatch({ type: IS_LOADING, payload: false });
-                Swal.fire({
-                    text: `Anda dinyatakan telah mengakhiri pekerjaan hari ini`
-                });
-            } else {
-                dispatch({ type: WORK_STARTED, payload: values.venue });
-                console.log(`Anda dinyatakan telah memulai bekerja hari ini`);
-                dispatch({ type: IS_LOADING, payload: false });
-                Swal.fire({
-                    text: `Anda dinyatakan telah memulai pekerjaan hari ini`
-                });
-            }
-        });
+        await apiServer.post(url, values);
+        if (workStarted) {
+            dispatch({ type: WORK_ENDED });
+            console.log(`Anda dinyatakan telah mengakhiri kerja hari ini`);
+            dispatch({ type: IS_LOADING, payload: false });
+            Swal.fire({
+                text: `Anda dinyatakan telah mengakhiri pekerjaan hari ini`
+            });
+        } else {
+            dispatch({ type: WORK_STARTED, payload: values.venue });
+            console.log(`Anda dinyatakan telah memulai bekerja hari ini`);
+            dispatch({ type: IS_LOADING, payload: false });
+            Swal.fire({
+                text: `Anda dinyatakan telah memulai pekerjaan hari ini`
+            });
+        }
     };
-    const markNotStarted = (id) => {
+    const markNotStarted = async (id) => {
         dispatch({ type: IS_LOADING, payload: true });
         const relatedTask = tasks.find((e) => e.sourceId === id);
         if (workStarted) {
@@ -127,14 +133,13 @@ const TaskList = () => {
                     text: `Status tugas ini belum dikerjakan`
                 });
             } else {
-                axios.patch(`${config.baseUrl}/assignments/${id}?env=${config.env}`, { id, status: 2 }).then(() => {
-                    const updatedTodayTasks = todayTasks.map((p) => (p.sourceId === id ? { ...p, status: 2 } : p));
-                    dispatch({ type: TODAY_TASKS, payload: updatedTodayTasks });
-                    const updatedRecentTasks = tasks.map((p) => (p.sourceId === id ? { ...p, status: 2 } : p));
-                    dispatch({ type: RECENT_TASKS, payload: updatedRecentTasks });
-                    console.log(`Tugas ID ${id} berhasil ditandai belum dimulai.`);
-                    dispatch({ type: IS_LOADING, payload: false });
-                });
+                await apiServer.patch(`${config.baseUrl}/assignments/${id}?env=${config.env}`, { id, status: 2 });
+                const updatedTodayTasks = todayTasks.map((t) => (t.sourceId === id ? { ...t, status: 2 } : t));
+                setTodayTasks(updatedTodayTasks);
+                const updatedRecentTasks = tasks.map((t) => (t.sourceId === id ? { ...t, status: 2 } : t));
+                setTasks(updatedRecentTasks);
+                console.log(`Tugas ID ${id} berhasil ditandai belum dimulai.`);
+                dispatch({ type: IS_LOADING, payload: false });
             }
         } else {
             dispatch({ type: IS_LOADING, payload: false });
@@ -143,7 +148,7 @@ const TaskList = () => {
             });
         }
     };
-    const markBeingWorkedOn = (id) => {
+    const markBeingWorkedOn = async (id) => {
         dispatch({ type: IS_LOADING, payload: true });
         const relatedTask = tasks.find((e) => e.sourceId === id);
         if (workStarted) {
@@ -153,14 +158,11 @@ const TaskList = () => {
                     text: `Status tugas ini sedang dikerjakan`
                 });
             } else {
-                axios.patch(`${config.baseUrl}/assignments/${id}?env=${config.env}`, { id, status: 3 }).then(() => {
-                    const updatedTodayTasks = todayTasks.map((p) => (p.sourceId === id ? { ...p, status: 3 } : p));
-                    dispatch({ type: TODAY_TASKS, payload: updatedTodayTasks });
-                    const updatedRecentTasks = tasks.map((p) => (p.sourceId === id ? { ...p, status: 3 } : p));
-                    dispatch({ type: RECENT_TASKS, payload: updatedRecentTasks });
-                    console.log(`Tugas ID ${id} berhasil ditandai sedang dikerjakan.`);
-                    dispatch({ type: IS_LOADING, payload: false });
-                });
+                await apiServer.patch(`${config.baseUrl}/assignments/${id}?env=${config.env}`, { id, status: 3 });
+                setTodayTasks(todayTasks.map((t) => (t.sourceId === id ? { ...t, status: 3 } : t)));
+                setTasks(tasks.map((t) => (t.sourceId === id ? { ...t, status: 3 } : t)));
+                console.log(`Tugas ID ${id} berhasil ditandai sedang dikerjakan.`);
+                dispatch({ type: IS_LOADING, payload: false });
             }
         } else {
             dispatch({ type: IS_LOADING, payload: false });
@@ -169,7 +171,7 @@ const TaskList = () => {
             });
         }
     };
-    const markFinished = (id) => {
+    const markFinished = async (id) => {
         dispatch({ type: IS_LOADING, payload: true });
         const relatedTask = tasks.find((e) => e.sourceId === id);
         if (workStarted) {
@@ -179,14 +181,13 @@ const TaskList = () => {
                     text: `Status tugas ini sudah selesai`
                 });
             } else {
-                axios.patch(`${config.baseUrl}/assignments/${id}?env=${config.env}`, { id, status: 4 }).then(() => {
-                    const updatedTodayTasks = todayTasks.map((p) => (p.sourceId === id ? { ...p, status: 4 } : p));
-                    dispatch({ type: TODAY_TASKS, payload: updatedTodayTasks });
-                    const updatedRecentTasks = tasks.map((p) => (p.sourceId === id ? { ...p, status: 4 } : p));
-                    dispatch({ type: RECENT_TASKS, payload: updatedRecentTasks });
-                    console.log(`Tugas ID ${id} berhasil ditandai sudah selesai.`);
-                    dispatch({ type: IS_LOADING, payload: false });
-                });
+                await apiServer.patch(`${config.baseUrl}/assignments/${id}?env=${config.env}`, { id, status: 4 });
+                const updatedTodayTasks = todayTasks.map((t) => (t.sourceId === id ? { ...t, status: 4 } : t));
+                setTodayTasks(updatedTodayTasks);
+                const updatedRecentTasks = tasks.map((t) => (t.sourceId === id ? { ...t, status: 4 } : t));
+                setTasks(updatedRecentTasks);
+                console.log(`Tugas ID ${id} berhasil ditandai sudah selesai.`);
+                dispatch({ type: IS_LOADING, payload: false });
             }
         } else {
             dispatch({ type: IS_LOADING, payload: false });
@@ -197,7 +198,7 @@ const TaskList = () => {
     };
     const editTask = (id) => {
         if (workStarted) {
-            axios.get(`${config.baseUrl}/assignment/${id}/details`).then((res) => {
+            apiServer.get(`${config.baseUrl}/assignment/${id}/details`).then((res) => {
                 setTaskEditModal({
                     open: true,
                     taskId: id,
@@ -210,9 +211,9 @@ const TaskList = () => {
             });
         }
     };
-    const deleteTask = (id) => {
+    const deleteTask = async (id) => {
         if (workStarted) {
-            Swal.fire({
+            const { isConfirmed } = await Swal.fire({
                 title: 'Konfirmasi hapus tugas',
                 text: 'Hapus tugas ini?',
                 icon: 'warning',
@@ -221,21 +222,11 @@ const TaskList = () => {
                 cancelButtonColor: '#d33',
                 confirmButtonText: 'Hapus',
                 cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    axios.delete(`${config.baseUrl}/assignments/${id}`).then((response) => {
-                        axios.get(`${config.baseUrl}/users/${localStorage.getItem('userId')}/assignments`).then((res) => {
-                            const tasks = res.data.data.data;
-                            dispatch({
-                                type: RECENT_TASKS,
-                                payload: tasks
-                            });
-                            Swal.fire('Terhapus!', 'Tugas ini telah dihapus.', 'success');
-                        });
-                        console.log(response);
-                    });
-                }
-            });
+            })
+            if (isConfirmed) {
+                await apiServer.delete(`${config.baseUrl}/assignments/${id}`);
+                getData()
+            }
         } else {
             Swal.fire({
                 text: `Anda harus memulai pekerjaan hari ini`
@@ -243,30 +234,34 @@ const TaskList = () => {
         }
     };
 
-    let workButton = (
-        <Button
-            color="primary"
-            variant="contained"
-            type="submit"
-            disabled={(todayTasks.length === 0 || workStarted) && (todayTasks.length !== markedTasks.length || todayTasks.length === 0)}
-        >
-            {workStarted ? 'AKHIRI BEKERJA' : 'MULAI BEKERJA'}
-        </Button>
-    );
-
-    if ((todayTasks.length === 0 || workStarted) && (todayTasks.length !== markedTasks.length || todayTasks.length === 0)) {
-        workButton = (
-            <Tooltip
-                title={
-                    workStarted
-                        ? 'Anda harus menandai semua tugas yang ditambahkan hari ini'
-                        : 'Anda harus mengisi minimal satu tugas untuk hari ini'
-                }
+    const WorkButton = () => {
+        const workButton = (
+            <Button
+                color="primary"
+                variant="contained"
+                type="submit"
+                disabled={(todayTasks.length === 0 || workStarted) && (todayTasks.length !== markedTasks.length || todayTasks.length === 0)}
             >
-                <span>{workButton}</span>
-            </Tooltip>
+                {workStarted ? 'AKHIRI BEKERJA' : 'MULAI BEKERJA'}
+            </Button>
         );
-    }
+
+        if ((todayTasks.length === 0 || workStarted) && (todayTasks.length !== markedTasks.length || todayTasks.length === 0)) {
+            return (
+                <Tooltip
+                    title={
+                        workStarted
+                            ? 'Anda harus menandai semua tugas yang ditambahkan hari ini'
+                            : 'Anda harus mengisi minimal satu tugas untuk hari ini'
+                    }
+                >
+                    <span>{workButton}</span>
+                </Tooltip>
+            );
+        }
+
+        return workButton
+    };
 
     return (
         <>
@@ -375,17 +370,7 @@ const TaskList = () => {
                     </Grid>
                 </CardContent>
                 <CardActions sx={{ p: 1.25, pt: 0, justifyContent: 'center' }}>
-                    <Pagination
-                        count={totalTasks}
-                        variant="outlined"
-                        shape="rounded"
-                        onChange={(e, p) => {
-                            axios.get(`${config.baseUrl}/users/${localStorage.getItem('userId')}/assignments?page=${p}`).then((res) => {
-                                console.log(res);
-                                dispatch({ type: RECENT_TASKS, payload: res.data.data.data });
-                            });
-                        }}
-                    />
+                    <Pagination count={totalTasks} variant="outlined" shape="rounded" onChange={(e, p) => setCurrentPage(p)} />
                 </CardActions>
             </MainCard>
             <MainCard>
@@ -397,24 +382,29 @@ const TaskList = () => {
                         <Typography>Isi tempat kerja Anda saat ini.</Typography>
                     </>
                 )}
-                <Formik initialValues={{ venue: '' }} validate={validateForm} onSubmit={onSubmit}>
+                <Formik initialValues={{ venue: '' }} validate={validateForm} onSubmit={toggleWork}>
                     {() => (
                         // Pass in the radio buttons you want to render as a prop
                         <Form>
-                            {!workStarted ? (
+                            {!workStarted && (
                                 <>
                                     <Field name="venue" options={options} component={FormikRadioGroup} />
                                 </>
-                            ) : (
-                                ''
                             )}
 
-                            <div className="activation-buttons">{workButton}</div>
+                            <div className="activation-buttons">
+                                <WorkButton />
+                            </div>
                         </Form>
                     )}
                 </Formik>
             </MainCard>
-            <TaskEditModal open={taskEditModal.open} taskId={taskEditModal.taskId} taskTitle={taskEditModal.taskTitle} />
+            <TaskEditModal
+                open={taskEditModal.open}
+                taskId={taskEditModal.taskId}
+                taskTitle={taskEditModal.taskTitle}
+                onSuccess={() => getData()}
+            />
         </>
     );
 };

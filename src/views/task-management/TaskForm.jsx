@@ -1,16 +1,19 @@
-import { Formik } from 'formik';
 import * as Yup from 'yup';
+
 import { Box, Button, FormControl, FormHelperText, Grid, TextField } from '@mui/material';
+import { IS_LOADING, RECENT_TASKS, TODAY_TASKS, TOTAL_TASKS } from '@/store/actions';
+
 import AnimateButton from '@/ui-component/extended/AnimateButton';
+import { Formik } from 'formik';
 import axios from 'axios';
-import { useDispatch, useSelector } from 'react-redux';
-import { RECENT_TASKS, TODAY_TASKS, IS_LOADING, TOTAL_TASKS } from '@/store/actions';
 import config from '@/config';
+import { useDispatch } from 'react-redux';
+import { useSession } from '@/hooks/store-hooks';
 
 const TaskForm = () => {
     const dispatch = useDispatch();
-    const session = useSelector((state) => state.customization);
-    const userId = session.account.user.id;
+    const session = useSession()
+    const userId = session.user.id;
 
     return (
         <>
