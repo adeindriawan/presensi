@@ -4,10 +4,11 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import MainCard from '@/ui-component/cards/MainCard';
-import axios from 'axios';
 import config from '@/config';
+import { useApiServer } from '@/utils/useApiServer';
 
 export default function PresenceRecords() {
+    const apiServer = useApiServer()
     const [id, setId] = useState('');
     const [fromDate, setFromDate] = useState(null);
     const [toDate, setToDate] = useState(null);
@@ -22,10 +23,9 @@ export default function PresenceRecords() {
         window.open(`${config.webUrl}/getPresenceSummary/${id}/${fromDate}/${toDate}`);
     };
 
-    axios.defaults.headers.common.Authorization = `Bearer ${localStorage.getItem('accessToken')}`;
     useEffect(() => {
         if (names.length === 0) {
-            axios.get(`${config.baseUrl}/employee/names`).then((res) => {
+            apiServer.get(`${config.baseUrl}/employee/names`).then((res) => {
                 console.log(res.data.data);
                 setNames(res.data.data);
             }, []);
