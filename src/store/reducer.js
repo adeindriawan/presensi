@@ -1,14 +1,12 @@
 import { combineReducers } from 'redux';
-
-// reducer import
 import customizationReducer from './customizationReducer';
 import sessionReducer from './sessionReducer';
-
-// ==============================|| COMBINE REDUCER ||============================== //
+import taskReducer from './taskReducer'
 
 const reducer = combineReducers({
     customization: customizationReducer,
-    session: sessionReducer
+    session: sessionReducer,
+    task: taskReducer
 });
 
 export default reducer;

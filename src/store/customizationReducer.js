@@ -1,8 +1,11 @@
 // project imports
+
+import * as actionTypes from './actions';
+
 import config from '@/config';
 
 // action - state management
-import * as actionTypes from './actions';
+
 
 export const initialState = {
     isOpen: [], // for active default menu
@@ -13,8 +16,6 @@ export const initialState = {
         isLoading: false
     }
 };
-
-// ==============================|| CUSTOMIZATION REDUCER ||============================== //
 
 const customizationReducer = (state = initialState, action) => {
     switch (action.type) {

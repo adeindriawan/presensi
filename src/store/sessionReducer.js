@@ -13,12 +13,7 @@ export const initialState = {
     email: "",
     type: "",
     isManager: false
-  },
-  work: {
-    started: false,
-    ended: false,
-    venue: "",
-  },
+  }
 };
 
 const sessionReducer = (state = initialState, action) => {
@@ -52,25 +47,6 @@ const sessionReducer = (state = initialState, action) => {
           email: "",
           type: "",
           isManager: false
-        },
-      };
-    case actionTypes.WORK_STARTED: {
-      const venue = action.payload;
-      return {
-        ...state,
-        work: {
-          ...state.work,
-          started: true,
-          venue,
-        },
-      };
-    }
-    case actionTypes.WORK_ENDED:
-      return {
-        ...state,
-        work: {
-          ...state.work,
-          ended: true,
         },
       };
     default:
