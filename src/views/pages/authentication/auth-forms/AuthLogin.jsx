@@ -1,4 +1,3 @@
-// third party
 import * as Yup from 'yup';
 
 import {
@@ -17,19 +16,29 @@ import { useEffect, useRef, useState } from 'react';
 import AnimateButton from '@/ui-component/extended/AnimateButton';
 import { Formik } from 'formik';
 import Swal from 'sweetalert2';
-// assets
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import axios from 'axios';
-import config from '@/config';
+import config from "@/config"
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router';
-// project imports
 import useScriptRef from '@/hooks/useScriptRef';
-// material-ui
 import { useTheme } from '@mui/material/styles';
 
-// ============================|| FIREBASE - LOGIN ||============================ //
+async function login(loginData, managerIds) {
+    const response = await axios.post(`${config.baseUrl}/login`, loginData)
+    const responseData = response.data.data
+    const accessToken = responseData.access_token;
+    const tokenExpireAt = responseData.expires_at;
+    const userData = responseData.user;
+    const newSessionData = {
+        accessToken,
+        tokenExpireAt,
+        user: { ...userData, isManager: managerIds.current.includes(userData.id) }
+    }
+    console.log(newSessionData)
+    return newSessionData
+  }
 
 const AuthLogin = ({ ...others }) => {
     const theme = useTheme();
@@ -53,23 +62,14 @@ const AuthLogin = ({ ...others }) => {
                 setStatus({ success: true });
                 setSubmitting(false);
             }
-            await axios.post(`${config.baseUrl}/login`, values).then((response) => {
-                const responseData = response.data.data;
-                const accessToken = responseData.access_token;
-                const tokenExpireAt = responseData.expires_at;
-                const userData = responseData.user;
-                const newSessionData = {
-                    accessToken,
-                    tokenExpireAt,
-                    user: { ...userData, isManager: managerIds.current.includes(userData.id) }
-                }
-                dispatch({
-                    type: SESSION_LOGIN,
-                    payload: newSessionData
-                });
-                dispatch({ type: IS_LOADING, payload: false });
-                navigate('/task-management');
+            const newSessionData =  await login(values, managerIds)
+            dispatch({
+                type: SESSION_LOGIN,
+                payload: newSessionData
             });
+            dispatch({ type: IS_LOADING, payload: false });
+            navigate('/task-management');
+
         } catch (err) {
             console.error(err);
             const errorMessage = 'message' in err ? err.message : 'Error';
@@ -99,8 +99,8 @@ const AuthLogin = ({ ...others }) => {
         <>
             <Formik
                 initialValues={{
-                    email: 'youremail@itsteknosains.co.id',
-                    password: '123456',
+                    email: '',
+                    password: '',
                     submit: null
                 }}
                 validationSchema={Yup.object().shape({
