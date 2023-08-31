@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
 import { Button, FormControl, InputLabel, MenuItem, Select, TextField } from '@mui/material';
+import { useEffect, useState } from 'react';
+
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -34,7 +35,7 @@ export default function PresenceRecords() {
 
     return (
         <MainCard sx={{ minWidth: 120 }}>
-            <FormControl fullWidth>
+            <FormControl fullWidth sx={{ maxWidth: 280, mb: 2 }}>
                 <InputLabel id="demo-simple-select-label">Nama</InputLabel>
                 <Select labelId="demo-simple-select-label" id="demo-simple-select" value={id} label="Age" onChange={handleChange}>
                     {names.map((v) => (
@@ -44,6 +45,7 @@ export default function PresenceRecords() {
                     ))}
                 </Select>
             </FormControl>
+            <br />
             <LocalizationProvider dateAdapter={AdapterDateFns}>
                 <DatePicker
                     label="Dari tanggal"
@@ -67,10 +69,10 @@ export default function PresenceRecords() {
                         toDateObj = new Date(toDateObj.getTime() - offset * 60 * 1000).toISOString().split('T')[0];
                         setToDate(toDateObj);
                     }}
-                    renderInput={(params) => <TextField {...params} />}
+                    renderInput={(params) => <TextField {...params} sx={{ ml: 2 }} />}
                 />
             </LocalizationProvider>
-            <Button onClick={handleSubmit} variant="contained">
+            <Button color="secondary" sx={{ display: 'block', mt: 2 }} onClick={handleSubmit} variant="contained">
                 AMBIL DATA
             </Button>
         </MainCard>
