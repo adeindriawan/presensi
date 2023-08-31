@@ -1,17 +1,15 @@
-import { Link } from 'react-router-dom';
-
 // material-ui
 import { ButtonBase } from '@mui/material';
-
+import { Link } from 'react-router-dom';
 // project imports
 import config from '@/config';
-import Logo from '@/ui-component/Logo';
+import logo from '@/assets/images/logo-PT-ITS-Tekno-Sains-160-x-160.png';
 
 // ==============================|| MAIN LOGO ||============================== //
 
 const LogoSection = () => (
     <ButtonBase disableRipple component={Link} to={config.defaultPath}>
-        <Logo />
+        <img src={logo} alt="ITS Tekno Sains Logo" width={50} />
     </ButtonBase>
 );
 

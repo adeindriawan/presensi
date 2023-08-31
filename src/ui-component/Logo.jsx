@@ -8,7 +8,7 @@
  * import logo from '@/assets/images/logo.svg';
  *
  */
-import logo from '@/assets/images/logo.png';
+import logo from '@/assets/images/logo-PT-ITS-Tekno-Sains-160-x-160';
 
 // ==============================|| LOGO SVG ||============================== //
 
