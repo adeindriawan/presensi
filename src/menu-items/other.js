@@ -1,10 +1,4 @@
-// assets
-import { IconBrandChrome, IconListCheck } from '@tabler/icons';
-
-// constant
-const icons = { IconBrandChrome, IconListCheck };
-
-// ==============================|| SAMPLE PAGE & DOCUMENTATION MENU ITEMS ||============================== //
+import { IconFileInvoice, IconListCheck } from '@tabler/icons';
 
 const other = {
     id: 'sample-docs-roadmap',
@@ -15,7 +9,15 @@ const other = {
             title: 'Task Management',
             type: 'item',
             url: '/task-management',
-            icon: icons.IconListCheck,
+            icon: IconListCheck,
+            breadcrumbs: false
+        },
+        {
+            id: 'absence-form',
+            title: 'Absence Form',
+            type: 'item',
+            url: '/absence-form',
+            icon: IconFileInvoice,
             breadcrumbs: false
         }
     ]

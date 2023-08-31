@@ -1,12 +1,12 @@
-import { lazy } from 'react';
-
-import MainLayout from '@/layout/MainLayout';
 import Loadable from '@/ui-component/Loadable';
+import MainLayout from '@/layout/MainLayout';
 import ProtectedRoute from './ProtectedRoute';
+import { lazy } from 'react';
 
 const DashboardDefault = Loadable(lazy(() => import('@/views/dashboard/Default')));
 const TaskManagement = Loadable(lazy(() => import('@/views/task-management')));
 const PresenceRecords = Loadable(lazy(() => import('@/views/presence-records')));
+const AbsenceForm = Loadable(lazy(() => import('@/views/absence-form')))
 
 const MainRoutes = {
     path: '/',
@@ -33,6 +33,14 @@ const MainRoutes = {
             element: (
                 <ProtectedRoute>
                     <PresenceRecords />
+                </ProtectedRoute>
+            )
+        },
+        {
+            path: '/absence-form',
+            element: (
+                <ProtectedRoute>
+                    <AbsenceForm />
                 </ProtectedRoute>
             )
         }
