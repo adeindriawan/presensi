@@ -1,22 +1,34 @@
 import * as Yup from 'yup';
 
-import { Box, Button, FormControl, FormHelperText, Grid, TextField } from '@mui/material';
-import { IS_LOADING, RECENT_TASKS, TODAY_TASKS, TOTAL_TASKS } from '@/store/actions';
+import {
+    Box,
+    Button,
+    FormControl,
+    FormHelperText,
+    Grid,
+    InputAdornment,
+    TextField
+} from '@mui/material';
 
 import AnimateButton from '@/ui-component/extended/AnimateButton';
 import { Formik } from 'formik';
-import axios from 'axios';
+import { IS_LOADING } from '@/store/actions';
+import MainCard from '@/ui-component/cards/MainCard';
+import { Typography } from '@mui/material';
 import config from '@/config';
+import { useApiServer } from '@/utils/useApiServer';
 import { useDispatch } from 'react-redux';
 import { useSession } from '@/hooks/store-hooks';
 
-const TaskForm = () => {
+const TaskForm = ({ onSuccess }) => {
+    const apiServer = useApiServer()
     const dispatch = useDispatch();
     const session = useSession()
     const userId = session.user.id;
 
     return (
-        <>
+        <MainCard title="Form Tugas Anda" sx={{ mb: 2 }}>
+            <Typography variant="body2" sx={{ mb: 2 }}>Tulis tugas Anda secara ringkas</Typography>
             <Grid container direction="column" justifyContent="center" spacing={0} />
             <Formik
                 initialValues={{
@@ -27,37 +39,10 @@ const TaskForm = () => {
                 })}
                 onSubmit={async (values, actions) => {
                     dispatch({ type: IS_LOADING, payload: true });
-                    await axios({
-                        method: 'post',
-                        url: `${config.baseUrl}/users/${userId}/assignment?env=${config.env}`,
-                        data: values
-                    }).then(async (res) => {
-                        const getRecentTasks = await axios({
-                            method: 'get',
-                            url: `${config.baseUrl}/users/${userId}/assignments?page=1`
-                        });
-                        const recentTasks = getRecentTasks.data.data;
-                        const totalTasks = getRecentTasks.data.last_page;
-                        dispatch({
-                            type: RECENT_TASKS,
-                            payload: recentTasks.data
-                        });
-                        dispatch({
-                            type: TOTAL_TASKS,
-                            payload: totalTasks
-                        });
-                        const todayTasks = recentTasks.data.filter((v) => {
-                            const taskDate = new Date(v.createdAt).setHours(0, 0, 0, 0);
-                            const todayDate = new Date().setHours(0, 0, 0, 0);
-                            return taskDate === todayDate;
-                        });
-                        dispatch({
-                            type: TODAY_TASKS,
-                            payload: todayTasks
-                        });
-                        actions.setFieldValue('title', '');
-                        dispatch({ type: IS_LOADING, payload: false });
-                    });
+                    await apiServer.post(`${config.baseUrl}/users/${userId}/assignment?env=${config.env}`, values)
+                    actions.setFieldValue('title', '');
+                    onSuccess()
+                    dispatch({ type: IS_LOADING, payload: false });
                 }}
             >
                 {({ errors, handleBlur, handleChange, handleSubmit, isSubmitting, isValid, touched, values }) => (
@@ -67,7 +52,7 @@ const TaskForm = () => {
                                 fullWidth
                                 id="title"
                                 name="title"
-                                label="Apa yang akan Anda kerjakan hari ini..."
+                                placeholder="Apa yang akan Anda kerjakan hari ini..."
                                 multiline
                                 value={values.title}
                                 onChange={handleChange}
@@ -81,24 +66,22 @@ const TaskForm = () => {
                             )}
                         </FormControl>
                         <Box sx={{ mt: 2 }}>
-                            <AnimateButton>
-                                <Button
-                                    disableElevation
-                                    disabled={isSubmitting || !isValid}
-                                    fullWidth
-                                    size="large"
-                                    type="submit"
-                                    variant="contained"
-                                    color="secondary"
-                                >
-                                    SIMPAN
-                                </Button>
-                            </AnimateButton>
+                            <Button
+                                disableElevation
+                                disabled={isSubmitting || !isValid}
+                                fullWidth
+                                size="large"
+                                type="submit"
+                                variant="contained"
+                                color="secondary"
+                            >
+                                SIMPAN
+                            </Button>
                         </Box>
                     </form>
                 )}
             </Formik>
-        </>
+        </MainCard>
     );
 };
 

@@ -1,13 +1,11 @@
-import { useEffect, useState } from 'react';
-import { Modal, Card, CardHeader, CardContent, CardActions, Button, TextField, FormControl, FormHelperText } from '@mui/material';
-import { makeStyles } from '@mui/styles';
-import { Formik } from 'formik';
 import * as Yup from 'yup';
+
+import { Button, Card, CardActions, CardContent, CardHeader, FormControl, Modal, TextField } from '@mui/material';
+
 import AnimateButton from '@/ui-component/extended/AnimateButton';
-import axios from 'axios';
+import { Formik } from 'formik';
 import config from '@/config';
-import { useDispatch } from 'react-redux';
-import { RECENT_TASKS } from '@/store/actions';
+import { makeStyles } from '@mui/styles';
 import { useApiServer } from '@/utils/useApiServer';
 
 const useStyle = makeStyles((theme) => ({
@@ -17,7 +15,6 @@ const useStyle = makeStyles((theme) => ({
         left: '50%',
         transform: 'translate(-50%, -50%)',
         outline: 'none',
-        // boxShadow: theme.shadows[20],
         width: 700,
         maxHeight: '100%',
         overflowY: 'auto',
@@ -25,24 +22,18 @@ const useStyle = makeStyles((theme) => ({
     }
 }));
 
-const TaskEditModal = ({ open, taskId, taskTitle, onSuccess }) => {
+const TaskEditModal = ({ open, taskId, taskTitle, onSuccess, onClose }) => {
     const apiServer = useApiServer()
     const classes = useStyle();
-    const dispatch = useDispatch();
-    const [taskEditModalOpen, setTaskEditModalOpen] = useState(open);
-
-    useEffect(() => {
-        setTaskEditModalOpen(open);
-    }, [open]);
 
     const handleSubmit = async (values) => {
         await apiServer.patch(`${config.baseUrl}/assignments/${taskId}`, { id: taskId, assignment: values.assignment })
         onSuccess()
-        setTaskEditModalOpen(false);
+        onClose()
     }
 
     return (
-        <Modal open={taskEditModalOpen}>
+        <Modal open={open}>
             <Card className={classes.cardModal}>
                 <CardHeader title="Ubah tugas ini" />
                 <Formik
@@ -71,8 +62,16 @@ const TaskEditModal = ({ open, taskId, taskTitle, onSuccess }) => {
                             </CardContent>
                             <CardActions>
                                 <AnimateButton>
-                                    <Button color="primary" variant="contained" type="submit">
+                                    <Button color="secondary" variant="contained" type="submit">
                                         SIMPAN
+                                    </Button>
+                                </AnimateButton>
+                                <AnimateButton>
+                                    <Button color="primary" variant="contained" onClick={(e) => {
+                                        e.preventDefault()
+                                        onClose()
+                                    }}>
+                                        BATAL
                                     </Button>
                                 </AnimateButton>
                             </CardActions>
