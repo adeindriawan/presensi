@@ -1,10 +1,3 @@
-import { useState, useRef, useEffect } from 'react';
-
-import { useNavigate } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
-import { SESSION_LOGOUT } from '@/store/actions';
-// material-ui
-import { useTheme } from '@mui/material/styles';
 import {
     Avatar,
     Box,
@@ -20,38 +13,38 @@ import {
     Stack,
     Typography
 } from '@mui/material';
-
-// third-party
-import PerfectScrollbar from 'react-perfect-scrollbar';
+// assets
+import { IconLogout, IconSettings } from '@tabler/icons';
+import { useDispatch, useSelector } from 'react-redux';
+import { useEffect, useRef, useState } from 'react';
 
 // project imports
 import MainCard from '@/ui-component/cards/MainCard';
+// third-party
+import PerfectScrollbar from 'react-perfect-scrollbar';
+import { SESSION_LOGOUT } from '@/store/actions';
 import Transitions from '@/ui-component/extended/Transitions';
 import User1 from '@/assets/images/users/user-round.svg';
-
-// assets
-import { IconLogout, IconSettings } from '@tabler/icons';
+import { useNavigate } from 'react-router-dom';
+import { useSession } from "@/hooks/store-hooks"
+// material-ui
+import { useTheme } from '@mui/material/styles';
 
 // ==============================|| PROFILE MENU ||============================== //
 
 const ProfileSection = () => {
     const theme = useTheme();
     const customization = useSelector((state) => state.customization);
+    const session = useSession()
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    const [selectedIndex, setSelectedIndex] = useState(-1);
     const [open, setOpen] = useState(false);
     /**
      * anchorRef is used on different componets and specifying one type leads to other components throwing an error
      * */
     const anchorRef = useRef(null);
     const handleLogout = async () => {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('userId');
-        localStorage.removeItem('userName');
-        localStorage.removeItem('userEmail');
-        localStorage.removeItem('userType');
         dispatch({
             type: SESSION_LOGOUT
         });
@@ -102,7 +95,7 @@ const ProfileSection = () => {
                 }}
                 icon={
                     <Avatar
-                        src={User1}
+                        // src={User1}
                         sx={{
                             ...theme.typography.mediumAvatar,
                             margin: '8px 0 8px 8px !important',
@@ -112,7 +105,7 @@ const ProfileSection = () => {
                         aria-controls={open ? 'menu-list-grow' : undefined}
                         aria-haspopup="true"
                         color="inherit"
-                    />
+                    >F</Avatar>
                 }
                 label={<IconSettings stroke={1.5} size="1.5rem" color={theme.palette.primary.main} />}
                 variant="outlined"
@@ -148,12 +141,11 @@ const ProfileSection = () => {
                                     <Box sx={{ p: 2 }}>
                                         <Stack>
                                             <Stack direction="row" spacing={0.5} alignItems="center">
-                                                <Typography variant="h4">Good Morning,</Typography>
                                                 <Typography component="span" variant="h4" sx={{ fontWeight: 400 }}>
-                                                    {customization.account.user.name}
+                                                    {session.user.name}
                                                 </Typography>
                                             </Stack>
-                                            <Typography variant="subtitle2">{customization.account.user.type}</Typography>
+                                            <Typography variant="subtitle2">{session.user.type}</Typography>
                                         </Stack>
                                     </Box>
                                     <PerfectScrollbar style={{ height: '100%', maxHeight: 'calc(100vh - 250px)', overflowX: 'hidden' }}>
@@ -177,7 +169,6 @@ const ProfileSection = () => {
                                             >
                                                 <ListItemButton
                                                     sx={{ borderRadius: `${customization.borderRadius}px` }}
-                                                    selected={selectedIndex === 4}
                                                     onClick={handleLogout}
                                                 >
                                                     <ListItemIcon>

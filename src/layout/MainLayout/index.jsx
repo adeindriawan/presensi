@@ -1,22 +1,20 @@
-import { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { Outlet } from 'react-router-dom';
-
+import { AppBar, Box, CssBaseline, Toolbar, useMediaQuery } from '@mui/material';
 // material-ui
 import { styled, useTheme } from '@mui/material/styles';
-import { AppBar, Box, CssBaseline, Toolbar, useMediaQuery } from '@mui/material';
+import { useDispatch, useSelector } from 'react-redux';
 
 // project imports
 import Breadcrumbs from '@/ui-component/extended/Breadcrumbs';
-import Header from './Header';
-import Sidebar from './Sidebar';
 import Customization from '../Customization';
-import navigation from '@/menu-items';
-import { drawerWidth } from '@/store/constant';
-import { SET_MENU } from '@/store/actions';
-
+import Header from './Header';
 // assets
 import { IconChevronRight } from '@tabler/icons';
+import { Outlet } from 'react-router-dom';
+import { SET_MENU } from '@/store/actions';
+import Sidebar from './Sidebar';
+import { drawerWidth } from '@/store/constant';
+import navigation from '@/menu-items';
+import { useEffect } from 'react';
 
 // styles
 const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(({ theme, open }) => ({
